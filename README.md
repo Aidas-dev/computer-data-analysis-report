@@ -10,11 +10,13 @@
 
 2. **Install Environment**
    
-   **Option A: Conda**
+   **Option A: Mamba / Conda (Recommended)**
+   Using `mamba` is highly recommended for much faster installation times.
    ```bash
-   conda env create -f environment.yml
-   conda activate data-analysis-env
+   mamba env create -f environment.yml
+   mamba activate data-analysis-env
    ```
+   *(If you don't have mamba, replace `mamba` with `conda` in the commands above)*
 
    **Option B: Pip / Venv**
    ```bash
