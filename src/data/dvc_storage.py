@@ -10,7 +10,8 @@ def store_dataframes_in_dvc(
     base_path: str = '../data'
 ):
     """
-    Saves a DataFrame or a list of DataFrames to CSV files and pushes them to the DVC remote.
+    Saves a DataFrame or a list of DataFrames to CSV files, pushes them to the DVC remote,
+    and stages the resulting .dvc tracker files in Git.
     
     Parameters:
     - data: A single pandas DataFrame or a list of DataFrames to save.
@@ -36,7 +37,7 @@ def store_dataframes_in_dvc(
     for df, name in zip(data, names):
         file_path = os.path.join(output_dir, f"{name}.csv")
         print(f"💾 Saving DataFrame to {file_path}...")
-        df.to_csv(file_path)
+        df.to_csv(file_path, index=False)
         saved_files.append(file_path)
         
     for file_path in saved_files:
@@ -48,10 +49,20 @@ def store_dataframes_in_dvc(
             continue
             
         dvc_file = f"{file_path}.dvc"
+        gitignore_file = os.path.join(os.path.dirname(file_path), ".gitignore")
+        
         print(f"☁️ Pushing {dvc_file} to Oracle Cloud Bucket...")
         try:
             subprocess.run(["dvc", "push", dvc_file], check=True, capture_output=True)
-            print(f"✅ Successfully pushed {name} data to the Oracle bucket.")
+            print(f"✅ Successfully pushed {os.path.basename(file_path)} data to the Oracle bucket.")
+            
+            # [NEW] Automatically stage the .dvc tracker and .gitignore updates in Git
+            print(f"🔗 Staging {dvc_file} and {gitignore_file} in Git...")
+            subprocess.run(["git", "add", dvc_file, gitignore_file], check=True, capture_output=True)
+            
         except subprocess.CalledProcessError as e:
-            print(f"❌ Failed to push {dvc_file} to DVC remote: {e.stderr.decode('utf-8')}")
+            print(f"❌ Failed to push or stage {dvc_file}: {e.stderr.decode('utf-8')}")
+
+    print("\n🚨 CRITICAL: The raw data is safe in Oracle Cloud, but the Git tracking files (.dvc) are only staged locally.")
+    print("👉 To share this new data with your team, you MUST run the `notebooks/99-push-to-github.ipynb` notebook before closing Colab!")
 
