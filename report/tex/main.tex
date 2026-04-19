@@ -1,19 +1,24 @@
-\documentclass{article}
+\documentclass[preprint,12pt]{elsarticle}
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{booktabs}
 
-\title{Data Analysis Report}
-\author{Author}
-\date{\today}
-
 \begin{document}
 
-\maketitle
+\begin{frontmatter}
+\title{Data Analysis Report}
+
+\author[inst1]{Author Name}
+\affiliation[inst1]{organization={Your Institution}, country={USA}}
 
 \begin{abstract}
 Summary of findings.
 \end{abstract}
+
+\begin{keyword}
+AI Data Centers \sep Machine Learning \sep Power Grid \sep Colab
+\end{keyword}
+\end{frontmatter}
 
 \section{Introduction}
 Context for the analysis. Data sourced from APIs.
@@ -32,5 +37,8 @@ Model details (if ML used).
 
 \section{Conclusion}
 Key takeaways.
+
+\bibliographystyle{elsarticle-num}
+\bibliography{refs}
 
 \end{document}
