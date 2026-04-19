@@ -29,8 +29,11 @@
    - Run `dvc init` (if not done yet).
    - **Configure Oracle Remote:**
      ```bash
+     # OCI S3 API URL Format: https://<namespace>.compat.objectstorage.<region>.oraclecloud.com
+     # e.g. https://mynamespace.compat.objectstorage.eu-frankfurt-1.oraclecloud.com
+     
      dvc remote add -d oracle_remote s3://<your-bucket-name>/dvc-storage
-     dvc remote modify oracle_remote endpointurl https://<namespace>.compat.objectstorage.<region>.oraclecloud.com
+     dvc remote modify oracle_remote endpointurl <your-oci-s3-api-url>
      
      # Note: Contact repo owner for the Access Key and Secret Key!
      dvc remote modify oracle_remote access_key_id <provided-access-key>
