@@ -31,8 +31,10 @@
      ```bash
      dvc remote add -d oracle_remote s3://<your-bucket-name>/dvc-storage
      dvc remote modify oracle_remote endpointurl https://<namespace>.compat.objectstorage.<region>.oraclecloud.com
-     dvc remote modify oracle_remote access_key_id <your-access-key>
-     dvc remote modify oracle_remote secret_access_key <your-secret-key>
+     
+     # Note: Contact repo owner for the Access Key and Secret Key!
+     dvc remote modify oracle_remote access_key_id <provided-access-key>
+     dvc remote modify oracle_remote secret_access_key <provided-secret-key>
      ```
    - Pull data: `dvc pull`
 
