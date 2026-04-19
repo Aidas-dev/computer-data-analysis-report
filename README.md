@@ -24,9 +24,16 @@
    ```
 
 3. **Install DVC (Data Version Control)**
-   - Needs DVC installed globally or in conda environment.
-   - Run `dvc init` (if not done yet by repo creator).
-   - Configure remote storage (e.g., S3, Google Drive): `dvc remote add -d myremote <url>`
+   - Needs DVC installed globally or in conda/pip environment.
+   - We use an Oracle Cloud 10GB Bucket (S3 compatible) for data storage.
+   - Run `dvc init` (if not done yet).
+   - **Configure Oracle Remote:**
+     ```bash
+     dvc remote add -d oracle_remote s3://<your-bucket-name>/dvc-storage
+     dvc remote modify oracle_remote endpointurl https://<namespace>.compat.objectstorage.<region>.oraclecloud.com
+     dvc remote modify oracle_remote access_key_id <your-access-key>
+     dvc remote modify oracle_remote secret_access_key <your-secret-key>
+     ```
    - Pull data: `dvc pull`
 
 ## Folder Structure
