@@ -12,3 +12,4 @@ ruff>=0.1
 yfinance>=0.2.0
 gridstatus>=0.35.0
 sec-edgar-downloader>=5.1.0
+xgboost>=2.0.0
