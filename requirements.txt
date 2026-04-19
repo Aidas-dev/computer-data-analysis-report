@@ -5,6 +5,8 @@ scikit-learn>=1.3
 matplotlib>=3.7
 seaborn>=0.12
 dvc[s3]>=3.0
+botocore<1.36.0
+boto3<1.36.0
 black>=23.0
 ruff>=0.1
 yfinance>=0.2.0

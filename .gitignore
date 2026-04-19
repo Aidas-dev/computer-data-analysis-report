@@ -18,11 +18,21 @@ venv.bak/
 
 # Data and Models (Use DVC for these)
 data/raw/*
+!data/raw/*.dvc
+!data/raw/.gitignore
 data/interim/*
+!data/interim/*.dvc
+!data/interim/.gitignore
 data/processed/*
+!data/processed/*.dvc
+!data/processed/.gitignore
 data/external/*
+!data/external/*.dvc
+!data/external/.gitignore
 !data/**/.gitkeep
 models/*
+!models/*.dvc
+!models/.gitignore
 !models/.gitkeep
 
 # LaTeX build files
