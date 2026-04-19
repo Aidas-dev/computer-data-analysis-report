@@ -45,6 +45,8 @@
    - Pull data: `dvc pull`
 
 ## Google Colab Usage
+
+**🚨 CRITICAL:** When using Google Colab, you MUST run the `notebooks/00-colab-setup.ipynb` notebook at the beginning of *every* new Colab session. Colab environments are ephemeral, so this notebook clones the public code, installs dependencies, and securely pulls the private data from Oracle Cloud using your Colab Secrets.
 1. Open Google Colab and click the **🔑 Secrets** icon on the left sidebar.
 2. Add two new secrets:
    - Name: `OCI_ACCESS_KEY` | Value: `<provided-access-key>`
