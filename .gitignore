@@ -54,3 +54,56 @@ models/*
 .Trashes
 ehthumbs.db
 Thumbs.db
+# ----------------------------------------------------------------------
+# SECRETS & CREDENTIALS - CRITICAL PREVENTION
+# ----------------------------------------------------------------------
+*.pem
+*.key
+*.cert
+*.cert.pem
+*.crt
+*.p12
+*.pfx
+*.jks
+*.p8
+*.pub
+*id_rsa*
+*id_dsa*
+*id_ecdsa*
+*id_ed25519*
+*oauth*
+*.env.*
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.aws/
+.oci/
+oci_api_key.pem
+credentials.json
+client_secret.json
+client_secrets.json
+auth.json
+secrets.json
+*.kdbx
+*.ovpn
+*.pcap
+.htpasswd
+.npmrc
+.netrc
+.boto
+*secret*
+*password*
+*token*
+*credential*
+
+# Never track Jupyter configs which might contain tokens
+~/.jupyter/
+~/.local/share/jupyter/
+
+# SQLite databases (often used locally to store temp data)
+*.sqlite
+*.sqlite3
+*.db
+*.db3
