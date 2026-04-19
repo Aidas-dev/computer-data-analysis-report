@@ -15,3 +15,4 @@ sec-edgar-downloader>=5.1.0
 xgboost>=2.0.0
 pre-commit>=3.6.0
 nbstripout>=0.7.1
+statsmodels>=0.14.0
