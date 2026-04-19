@@ -8,10 +8,19 @@
    cd computer-data-analysis-report
    ```
 
-2. **Install Environment (Conda)**
+2. **Install Environment**
+   
+   **Option A: Conda**
    ```bash
    conda env create -f environment.yml
    conda activate data-analysis-env
+   ```
+
+   **Option B: Pip / Venv**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
    ```
 
 3. **Install DVC (Data Version Control)**

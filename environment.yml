@@ -15,3 +15,4 @@ dependencies:
   - pip:
       - black>=23.0
       - ruff>=0.1
+      - yfinance>=0.2.0
