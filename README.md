@@ -44,6 +44,34 @@
      ```
    - Pull data: `dvc pull`
 
+## Google Colab Usage
+1. Open Google Colab and click the **🔑 Secrets** icon on the left sidebar.
+2. Add two new secrets:
+   - Name: `OCI_ACCESS_KEY` | Value: `<provided-access-key>`
+   - Name: `OCI_SECRET_KEY` | Value: `<provided-secret-key>`
+3. Run this block in your first Colab cell:
+   ```python
+   # 1. Clone repository
+   !git clone <your-repo-url>
+   %cd computer-data-analysis-report
+
+   # 2. Install dependencies (including DVC S3 and downgraded botocore)
+   !pip install -r requirements.txt
+
+   # 3. Authenticate DVC securely using Colab Secrets
+   from google.colab import userdata
+   import os
+
+   access_key = userdata.get('OCI_ACCESS_KEY')
+   secret_key = userdata.get('OCI_SECRET_KEY')
+
+   !dvc remote modify --local oracle_remote access_key_id {access_key}
+   !dvc remote modify --local oracle_remote secret_access_key {secret_key}
+
+   # 4. Pull data
+   !dvc pull
+   ```
+
 ## Folder Structure
 - `data/` - Raw, interim, and processed data (tracked by DVC, NOT Git).
 - `docs/` - Important info, sources, links.
