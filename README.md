@@ -34,10 +34,13 @@
      # OCI S3 API URL Format: https://<namespace>.compat.objectstorage.<region>.oraclecloud.com
      dvc remote add -d oracle_remote s3://computer-data-analysis-report/dvc-storage
      dvc remote modify oracle_remote endpointurl https://fr4e2dl6aex0.compat.objectstorage.eu-frankfurt-1.oraclecloud.com
-     
+     ```
+   - **Set Secret Credentials (run this locally, do not commit):**
+     ```bash
      # Note: Contact repo owner for the Access Key and Secret Key!
-     dvc remote modify oracle_remote access_key_id <provided-access-key>
-     dvc remote modify oracle_remote secret_access_key <provided-secret-key>
+     # The --local flag prevents keys from being tracked by Git.
+     dvc remote modify --local oracle_remote access_key_id <provided-access-key>
+     dvc remote modify --local oracle_remote secret_access_key <provided-secret-key>
      ```
    - Pull data: `dvc pull`
 
