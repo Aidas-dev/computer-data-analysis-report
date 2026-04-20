@@ -1,0 +1,5 @@
+outs:
+- md5: b5c6135d3fe1e3df4078e5fc58eaf249
+  size: 238
+  hash: md5
+  path: iso_power_data.csv
