@@ -1,5 +1,0 @@
-outs:
-- md5: 33da8dd0ed33231af9877d066209b44d
-  size: 1205
-  hash: md5
-  path: city_location_data.csv
