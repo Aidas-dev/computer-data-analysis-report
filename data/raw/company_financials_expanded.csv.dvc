@@ -1,0 +1,5 @@
+outs:
+- md5: ef58b93442de2c7da315e66627813d26
+  size: 1958600
+  hash: md5
+  path: company_financials_expanded.csv
