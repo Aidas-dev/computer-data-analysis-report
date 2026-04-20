@@ -1,0 +1,5 @@
+outs:
+- md5: dab58bdadb68240055a020a1508ddc86
+  size: 1269
+  hash: md5
+  path: buildout_promises.csv
