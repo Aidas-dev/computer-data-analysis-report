@@ -1,0 +1,5 @@
+outs:
+- md5: 6c40c5dd43fa2c3b3da35c8d50c85af6
+  size: 910
+  hash: md5
+  path: macro_economic_indicators.csv

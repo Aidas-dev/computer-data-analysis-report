@@ -1,0 +1,5 @@
+outs:
+- md5: 8ffef9494b8093f75c9dd99e22e416de
+  size: 3069
+  hash: md5
+  path: company_financial_ratios.csv
