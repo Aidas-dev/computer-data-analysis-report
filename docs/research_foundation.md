@@ -97,6 +97,9 @@ We categorize data center builders into tiers:
 | US Census Demographics | `pytidycensus` | Population, income, employment by location |
 | Federal Reserve Economic Data | `fredapi` | GDP, inflation, interest rates, employment |
 
+> **FRED API Key:** `4aeb77367579a1c44a91f61ed6b991fe` (stored in `.env`, added to Colab Secrets as `FRED_API_KEY`)
+> **Census API:** Currently down — check https://api.census.gov/data/key_signup.html
+
 ---
 
 ## 5. Dataset Summary

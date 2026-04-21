@@ -54,9 +54,10 @@ Investigating what parameters (economic climate, supply chain, grid constraints)
 **🚨 CRITICAL:** When using Google Colab, you MUST run the `notebooks/00-colab-setup.ipynb` notebook at the beginning of *every* new Colab session. Colab environments are ephemeral, so this notebook clones the public code, installs dependencies, and securely pulls the private data from Oracle Cloud using your Colab Secrets.
 
 1. Open Google Colab and click the **🔑 Secrets** icon on the left sidebar.
-2. Add these secrets (for DVC and GitHub pushing):
+2. Add these secrets (for DVC, FRED data, and GitHub pushing):
    - Name: `OCI_ACCESS_KEY` | Value: `<provided-access-key>`
    - Name: `OCI_SECRET_KEY` | Value: `<provided-secret-key>`
+   - Name: `FRED_API_KEY` | Value: `<your-fred-api-key>` (Get free: https://fred.stlouisfed.org/fredapi/)
    - Name: `GITHUB_PAT` | Value: `<your-personal-access-token>`
    - Name: `GITHUB_USERNAME` | Value: `<your-github-username>`
    - Name: `GITHUB_EMAIL` | Value: `<your-github-email>`

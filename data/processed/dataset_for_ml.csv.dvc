@@ -1,0 +1,5 @@
+outs:
+- md5: 7304a86fa901f8a33f38e9803ef8eb87
+  size: 5746
+  hash: md5
+  path: dataset_for_ml.csv
