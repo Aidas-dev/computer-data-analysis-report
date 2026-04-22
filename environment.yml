@@ -27,4 +27,5 @@ dependencies:
       - nbstripout>=0.7.1
       - pytidycensus>=1.0
       - fredapi>=0.5.0
+       - edgartools>=5.30.0
       

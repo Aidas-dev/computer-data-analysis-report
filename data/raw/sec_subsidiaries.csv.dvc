@@ -1,0 +1,5 @@
+outs:
+- md5: 714ec5a4d4fd868e0575304fbb6d2c6d
+  size: 75081
+  hash: md5
+  path: sec_subsidiaries.csv

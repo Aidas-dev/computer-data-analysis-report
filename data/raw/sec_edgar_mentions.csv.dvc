@@ -1,0 +1,5 @@
+outs:
+- md5: a91f47b727f3708039674b744c0342cf
+  size: 2295393
+  hash: md5
+  path: sec_edgar_mentions.csv
