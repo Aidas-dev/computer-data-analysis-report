@@ -1,0 +1,31 @@
+\documentclass[preprint,12pt]{elsarticle}
+
+% These are "Packages" (like apps for your document)
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+
+\journal{Class Report}
+
+\begin{abstract}
+This is a brief summary of my report.
+\end{abstract}
+
+\begin{document}
+
+\begin{frontmatter}
+    \title{My First LaTeX Report}
+    \author{Your Name}
+    \address{Your University}
+\end{frontmatter}
+
+\section{Introduction}
+Here is where your text goes. Your classmate wants you to focus on the bibliography, so we will set that up next.
+
+\section{Citation Example}
+To cite something, I use a special command like this \cite{MMCG2025PowerPermits}.
+
+\nocite{*} 
+\bibliographystyle{elsarticle-num} 
+\bibliography{references}
+
+\end{document}
