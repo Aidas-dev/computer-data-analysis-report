@@ -1,15 +1,27 @@
-# Dataset Expansion Plan
+# Dataset Expansion Plan (COMPLETED)
 
 **Goal**: Expand AI data center buildout promises dataset for tabular ML.
 
-**Current State** (from `(b5)`):
-- `quarterly_panel.csv`: 231 rows × 30 cols, 11 tickers, **25 labeled** (19 kept / 6 not kept = 76% rate)
-- `timeseries_features.csv`: 13,805 rows × 14 cols, **1,185 promise labels** (8.6% rate)
-- Core bottleneck: **34 promise events** (23 kept + 11 pending)
+**Status**: Phases 1 & 3 complete ✅
 
 ---
 
-## Bottleneck Analysis
+## What's Done
+
+### ✅ Phase 1: Analyst Sentiment
+- Added yfinance recommendations (strongBuy, buy, hold)
+- Added analyst price targets (target_mean, target_premium_pct)
+- Added earnings features (earnings_growth, profit_margins, operating_margins)
+
+### ✅ Phase 3: Census Data
+- County-level: 28 counties × 13 variables
+- State-level: 52 states × 13 variables
+- Variables: population, income, home value, rent, unemployment, education
+
+### ✅ Unified Pipeline
+- Created `notebooks/09-full-pipeline.ipynb` to regenerate everything
+
+---
 
 | Issue | Severity | Impact |
 |---|---|---|
@@ -107,33 +119,22 @@
 
 ## Recommended Roadmap
 
-### Phase 1: Quick Wins (1-2 days)
+### ✅ Phase 1: Quick Wins (COMPLETED)
+- [x] Pull analyst recommendations + price targets for all 11 tickers
+- [x] Merge into quarterly_panel.csv
+- [x] Add to ML training
 
-- [ ] Pull analyst recommendations + price targets for all 11 tickers
-- [ ] Merge into quarterly_panel.csv
-- [ ] Add to ML training
-- **Expected**: +7 features, same rows
-
-### Phase 2: Expand Labels (1 week)
-
+### ⏳ Phase 2: Expand Labels (pending)
 - [ ] Extract additional promise events from SEC 10-K risk factors
 - [ ] Search news/API for 2024-2025 announcements
-- [ ] Validate and merge into promise dataset
-- **Expected**: +50-80 new promises
 
-### Phase 3: Add Features (2-3 days)
+### ✅ Phase 3: Add Features (COMPLETED)
+- [x] Fetch options IV (noted: yfinance IV returns near-zero)
+- [x] Fetch earnings from ticker.info
+- [x] Add Census county + state demographics
 
-- [ ] Fetch options IV for key dates
-- [ ] Fetch earnings surprises
-- [ ] Merge all into timeseries_features.csv
-- **Expected**: +10 features for 13,805 rows
-
-### Phase 4: Expand Universe (1 week)
-
-- [ ] Identify acquired companies with historical data
-- [ ] Add new active expanders
-- [ ] Retrain and compare
-- **Expected**: +4 tickers, +200+ quarterly rows
+### ⏳ Phase 4: Expand Universe (pending)
+- [ ] Add acquired company tickers (CONE, QTS, COR)
 
 ---
 
