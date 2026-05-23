@@ -95,7 +95,7 @@ result = subprocess.run(cmd, capture_output=True, text=True)
 status = "OK" if result.returncode == 0 else "FAIL"
 with open("{marker}", "w") as f:
     f.write(status + "\\n" + result.stdout[-500:] + "\\n" + result.stderr[-500:])
-print(f"[nb_{nb_name}] {status}")
+print(f"[nb_{nb_name}] {{status}}")
 """
     Path(f"/tmp/run_nb_{nb_name}.py").write_text(script)
     
