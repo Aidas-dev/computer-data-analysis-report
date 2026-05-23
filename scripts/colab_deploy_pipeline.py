@@ -60,7 +60,8 @@ def setup_dvc():
 
 def verify_bq():
     try:
-        from google.cloud import bigquery
+        os.environ["GOOGLE_CLOUD_PROJECT"] = "computer-data-analysis"
+from google.cloud import bigquery
         client = bigquery.Client()
         ds = list(client.list_datasets())
         log(f"BQ OK: {len(ds)} datasets")
