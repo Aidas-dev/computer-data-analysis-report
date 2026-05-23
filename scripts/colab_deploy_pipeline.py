@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 colab_deploy_pipeline.py — Runs ON colab VM.
-Upload via: colab exec -s pipeline -f scripts/colab_deploy_pipeline.py
+Executes notebooks 12→13→14 sequentially via detached nohup to avoid
+colab exec kernel timeout on long-running nbconvert subprocesses.
 """
-
 import base64, os, subprocess, sys, time
 from pathlib import Path
 
@@ -22,14 +22,11 @@ os.chdir("/content")
 def log(msg):
     print(f"[pipeline] {msg}", flush=True)
 
-def run(cmd, timeout=300, check=True, capture=False):
+def run(cmd, timeout=300, check=True):
     log(f"$ {cmd[:120]}")
-    kwargs = {"capture_output": capture, "text": True}
-    r = subprocess.run(cmd, shell=True, timeout=timeout, **kwargs)
+    r = subprocess.run(cmd, shell=True, timeout=timeout, capture_output=True, text=True)
     if check and r.returncode != 0:
         log(f"FAIL: {cmd[:80]}")
-        if capture:
-            log(f"  stderr: {r.stderr[-300:]}")
         raise RuntimeError(f"FAIL: {cmd[:80]}")
     return r
 
@@ -70,23 +67,53 @@ def verify_bq():
         log(f"BQ FAIL: {e}")
         return False
 
-def run_notebook(nb_name, timeout=900):
+def run_notebook_detached(nb_name, timeout=1800):
+    """Run notebook via detached nohup, poll completion marker."""
     path = f"notebooks/{nb_name}.ipynb"
+    out_path = f"notebooks/{nb_name}-exec.ipynb"
+    marker = f"/tmp/nb_done_{nb_name}"
+    logfile = f"/tmp/nb_{nb_name}.log"
+
     if not Path(path).exists():
         log(f"SKIP {nb_name}")
-        return False
-    log(f"RUN {nb_name}...")
-    try:
-        r = run(f"jupyter nbconvert --to notebook --execute "
-                f"--ExecutePreprocessor.timeout={timeout} "
-                f"--output-dir notebooks --output {nb_name}-exec.ipynb {path}",
-                timeout=timeout+30, capture=True)
-        ok = r.returncode == 0
-        log(f"{'OK' if ok else 'FAIL'} {nb_name}")
-        return ok
-    except Exception as e:
-        log(f"EXCEPTION {nb_name}: {e}")
-        return False
+        return True
+
+    Path(marker).unlink(missing_ok=True)
+
+    script = f"""import sys, os, json, subprocess, time
+sys.path.insert(0, "{REPO_DIR}")
+os.chdir("{REPO_DIR}")
+os.environ["GOOGLE_CLOUD_PROJECT"] = "project-21db66e7-39ca-4fda-b4e"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/content/gcp_adc.json"
+
+cmd = ["jupyter", "nbconvert", "--to", "notebook", "--execute",
+       "--ExecutePreprocessor.timeout={timeout}",
+       "--output-dir", "notebooks",
+       "--output", "{nb_name}-exec.ipynb",
+       "{path}"]
+result = subprocess.run(cmd, capture_output=True, text=True)
+status = "OK" if result.returncode == 0 else "FAIL"
+with open("{marker}", "w") as f:
+    f.write(status + "\\n" + result.stdout[-500:] + "\\n" + result.stderr[-500:])
+print(f"[nb_{nb_name}] {status}")
+"""
+    Path(f"/tmp/run_nb_{nb_name}.py").write_text(script)
+    
+    subprocess.run(
+        f"nohup python3 /tmp/run_nb_{nb_name}.py > {logfile} 2>&1 &",
+        shell=True, timeout=10)
+
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if Path(marker).exists():
+            result = Path(marker).read_text().strip()
+            ok = result.startswith("OK")
+            log(f"{'OK' if ok else 'FAIL'} {nb_name}")
+            return ok
+        time.sleep(10)
+
+    log(f"TIMEOUT {nb_name} after {timeout}s")
+    return False
 
 def dvc_push():
     for pattern in ["data/raw/buildout_candidates*.csv.dvc",
@@ -109,7 +136,7 @@ def main():
         sys.exit(1)
     results = {}
     for nb in NOTEBOOKS:
-        results[nb] = run_notebook(nb)
+        results[nb] = run_notebook_detached(nb)
     dvc_push()
     log("\n=== SUMMARY ===")
     for nb, ok in results.items():
