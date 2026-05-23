@@ -64,7 +64,20 @@ def install_deps():
     run("pip install uv -q", timeout=30)
     log("Installing deps...")
     run("uv pip install --system -r requirements.txt -q", timeout=300)
+    # Article extraction tools for GDELT buildout mining
+    run("uv pip install --system newspaper3k lxml_html_clean trafilatura -q", timeout=120)
     log("Deps installed.")
+
+def check_bq_auth():
+    try:
+        from google.cloud import bigquery
+        client = bigquery.Client()
+        datasets = list(client.list_datasets())
+        log(f"BQ auth OK — {len(datasets)} datasets accessible.")
+        return True
+    except Exception as e:
+        log(f"BQ auth FAILED: {e}")
+        return False
 
 def setup_dvc():
     """Configure DVC remote and pull data."""
@@ -133,6 +146,32 @@ def main():
         for nb in ("03-data-merging", "04-quarterly-panel", "05-timeseries-features"):
             run_notebook(nb, timeout=600)
         run("dvc push", timeout=300)
+
+    if step in ("all", "gdelt"):
+        """Run GDELT buildout mining pipeline."""
+        for nb in ("12-gdelt-domain-filter", "13-article-extraction", "14-gridstatus-labeling"):
+            run_notebook(nb, timeout=900)
+        run("dvc push", timeout=300)
+
+    if step in ("all", "gridstatus"):
+        """Quick-check gridstatus for all ISOs."""
+        log("=== Checking gridstatus ISOs ===")
+        script = '''
+import gridstatus, pandas as pd
+for iso_class in [gridstatus.CAISO, gridstatus.ERCOT, gridstatus.MISO, gridstatus.PJM, gridstatus.NYISO, gridstatus.SPP, gridstatus.ISONE]:
+    try:
+        iso = iso_class()
+        queues = iso.get_interconnection_queues()
+        print(f"{iso_class.__name__}: {len(queues)} projects")
+        if len(queues) > 0:
+            print(f"  columns: {list(queues.columns)[:10]}")
+    except Exception as e:
+        print(f"{iso_class.__name__}: FAILED - {e}")
+'''
+        r = run(f'python3 -c "{script}"', timeout=300, capture=True, check=False)
+        log(r.stdout)
+        if r.stderr:
+            log(r.stderr[-500:])
 
     log("DONE.")
 
