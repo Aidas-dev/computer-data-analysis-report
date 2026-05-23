@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
 colab_deploy_pipeline.py — Runs ON colab VM.
-Executes notebooks 12→13→14 sequentially via detached nohup to avoid
-colab exec kernel timeout on long-running nbconvert subprocesses.
+Executes pipeline scripts 12→13→14 via detached nohup python3 (no Jupyter kernel).
 """
 import base64, os, subprocess, sys, time
 from pathlib import Path
@@ -15,7 +14,7 @@ GCP_ADC_B64 = "ewogICJhY2NvdW50IjogIiIsCiAgImNsaWVudF9pZCI6ICI3NjQwODYwNTE4NTAtN
 
 REPO_URL = "https://github.com/Aidas-dev/computer-data-analysis-report.git"
 REPO_DIR = "/content/computer-data-analysis-report"
-NOTEBOOKS = ["12-gdelt-domain-filter", "13-article-extraction", "14-gridstatus-labeling"]
+SCRIPTS = ["pipeline_step12", "pipeline_step13", "pipeline_step14"]
 
 os.chdir("/content")
 
@@ -67,40 +66,19 @@ def verify_bq():
         log(f"BQ FAIL: {e}")
         return False
 
-def run_notebook_detached(nb_name, timeout=1800):
-    """Run notebook via detached nohup, poll completion marker."""
-    path = f"notebooks/{nb_name}.ipynb"
-    out_path = f"notebooks/{nb_name}-exec.ipynb"
-    marker = f"/tmp/nb_done_{nb_name}"
-    logfile = f"/tmp/nb_{nb_name}.log"
+def run_script(script_name, timeout=1800):
+    script_path = f"scripts/{script_name}.py"
+    marker = f"/tmp/done_{script_name}"
+    logfile = f"/tmp/{script_name}.log"
 
-    if not Path(path).exists():
-        log(f"SKIP {nb_name}")
+    if not Path(script_path).exists():
+        log(f"SKIP {script_name} (not found)")
         return True
 
     Path(marker).unlink(missing_ok=True)
 
-    script = f"""import sys, os, json, subprocess, time
-sys.path.insert(0, "{REPO_DIR}")
-os.chdir("{REPO_DIR}")
-os.environ["GOOGLE_CLOUD_PROJECT"] = "project-21db66e7-39ca-4fda-b4e"
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/content/gcp_adc.json"
-
-cmd = ["jupyter", "nbconvert", "--to", "notebook", "--execute",
-       "--ExecutePreprocessor.timeout={timeout}",
-       "--output-dir", "notebooks",
-       "--output", "{nb_name}-exec.ipynb",
-       "{path}"]
-result = subprocess.run(cmd, capture_output=True, text=True)
-status = "OK" if result.returncode == 0 else "FAIL"
-with open("{marker}", "w") as f:
-    f.write(status + "\\n" + result.stdout[-500:] + "\\n" + result.stderr[-500:])
-print(f"[nb_{nb_name}] {{status}}")
-"""
-    Path(f"/tmp/run_nb_{nb_name}.py").write_text(script)
-    
     subprocess.run(
-        f"nohup python3 /tmp/run_nb_{nb_name}.py > {logfile} 2>&1 &",
+        f"cd {REPO_DIR} && nohup python3 {script_path} > {logfile} 2>&1 &",
         shell=True, timeout=10)
 
     deadline = time.time() + timeout
@@ -108,11 +86,11 @@ print(f"[nb_{nb_name}] {{status}}")
         if Path(marker).exists():
             result = Path(marker).read_text().strip()
             ok = result.startswith("OK")
-            log(f"{'OK' if ok else 'FAIL'} {nb_name}")
+            log(f"{'OK' if ok else 'FAIL'} {script_name}")
             return ok
         time.sleep(10)
 
-    log(f"TIMEOUT {nb_name} after {timeout}s")
+    log(f"TIMEOUT {script_name} after {timeout}s")
     return False
 
 def dvc_push():
@@ -135,12 +113,12 @@ def main():
     if not verify_bq():
         sys.exit(1)
     results = {}
-    for nb in NOTEBOOKS:
-        results[nb] = run_notebook_detached(nb)
+    for script in SCRIPTS:
+        results[script] = run_script(script)
     dvc_push()
     log("\n=== SUMMARY ===")
-    for nb, ok in results.items():
-        log(f"  {'OK' if ok else 'FAIL'}: {nb}")
+    for script, ok in results.items():
+        log(f"  {'OK' if ok else 'FAIL'}: {script}")
     if all(results.values()):
         log("ALL OK")
     else:
