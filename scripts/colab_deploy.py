@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
-"""colab_deploy.py — Sequential runner ON colab VM. No nohup, no detached procs.
-Usage: colab exec -s <session> -f scripts/colab_deploy.py
+#!/usr/bin/env -S colab run --session buildout-pipeline
+"""colab_deploy.py — Run full pipeline on fresh colab VM.
+Usage: colab run scripts/colab_deploy.py
 """
 
 import base64, os, subprocess, sys, time
