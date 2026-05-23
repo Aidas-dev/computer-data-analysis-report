@@ -107,3 +107,4 @@ secrets.json
 *.sqlite3
 *.db
 *.db3
+.sisyphus/
