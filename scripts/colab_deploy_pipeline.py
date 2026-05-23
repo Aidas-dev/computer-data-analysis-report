@@ -60,7 +60,7 @@ def setup_dvc():
 
 def verify_bq():
     try:
-        os.environ["GOOGLE_CLOUD_PROJECT"] = "computer-data-analysis"
+        os.environ["GOOGLE_CLOUD_PROJECT"] = "project-21db66e7-39ca-4fda-b4e"
         from google.cloud import bigquery
         client = bigquery.Client()
         ds = list(client.list_datasets())
