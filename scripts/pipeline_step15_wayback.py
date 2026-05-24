@@ -46,7 +46,7 @@ CHECKPOINT_EVERY = 500
 FETCH_BATCH_SIZE = 500
 
 CDX_URL_TEMPLATE = (
-    "http://web.archive.org/cdx/search/cdx"
+    "https://web.archive.org/cdx/search/cdx"
     "?url={url}&limit=1&output=json&fl=timestamp,statuscode"
 )
 FETCH_URL_TEMPLATE = "https://web.archive.org/web/{timestamp}/{url}"
