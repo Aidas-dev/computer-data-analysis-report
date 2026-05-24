@@ -10,12 +10,17 @@
 \usepackage{booktabs}
 \usepackage{graphicx}
 \usepackage{amsmath}
+\usepackage[hyphens]{url}
 \usepackage[breaklinks=true]{hyperref}
+\def\UrlBreaks{\do\/\do-\do.\do_\do~}
 \usepackage{adjustbox}
 \usepackage{xspace}
 \providecommand{\MW}{MW\xspace}
 \providecommand{\USD}[1]{\$#1\xspace}
 \usepackage{textcomp}
+
+%% Emergency stretch to reduce overfull hboxes
+\setlength{\emergencystretch}{8pt}
 
 %% Tighter float spacing
 \setlength{\floatsep}{6pt plus 2pt minus 2pt}
@@ -24,6 +29,13 @@
 
 %% Journal
 \journal{Data \& Knowledge Engineering}
+
+%% Raggedright in bibliography for URL breaking
+\let\oldthebibliography\thebibliography
+\renewcommand{\thebibliography}[1]{%
+  \oldthebibliography{#1}%
+  \raggedright
+}
 
 %% ======================================================================
 %% Begin document
@@ -79,11 +91,11 @@ Section~\ref{sec:litreview} reviews related work. Section~\ref{sec:data} describ
 
 \subsection{Machine Learning for Construction Schedule Risk}
 
-Recent advances in machine learning have transformed construction schedule risk analysis. Fitzsimmons et al.~\cite{Fitzsimmons2022Construction} proposed a hybrid method combining Gaussian Mixture Modeling (GMM), Empirical Bayesian Networks (EBN), and Support Vector Machines (SVM) with Monte Carlo simulation, trained on 293,263 tasks from 302 UK infrastructure projects. Their approach achieved 54.4\% more accurate delay prediction than conventional Monte Carlo simulation, demonstrating that data-driven methods can replace expert estimation for schedule risk.
+Advances in machine learning have transformed construction schedule risk analysis. Fitzsimmons et al.~\cite{Fitzsimmons2022Construction} proposed a hybrid method combining Gaussian Mixture Modeling (GMM), Empirical Bayesian Networks (EBN), and Support Vector Machines (SVM) with Monte Carlo simulation, trained on 293,263 tasks from 302 UK infrastructure projects. Their approach achieved 54.4\% more accurate delay prediction than conventional Monte Carlo simulation, demonstrating that data-driven methods can replace expert estimates for schedule risk.
 
 Building on this foundation, Mosca et al.~\cite{Mosca2026AI} introduced AI-SRA, a neural network approach that predicts activity duration distributions from schedule attributes. Trained on hundreds of historical projects and deployed on real megaprojects, AI-SRA achieves at least 2$\times$ greater accuracy than traditional PERT or log-normal distributions in quantitative schedule risk analysis. Zachares et al.~\cite{Zachares2022Forecasting} further showed that formulating activity duration forecasting as a classification task with domain-specific binning yields orders of magnitude improvement over regression-based approaches.
 
-The gradient boosting paradigm has proven particularly effective. Abuassi et al.~\cite{Abuassi2025LightGBM} combined LightGBM with Harris Hawks Optimization (HHO) for schedule deviation and budget overrun prediction, outperforming Random Forest and XGBoost with RMSE of 15.32 days and \$25,840. Al Mnaseer~\cite{AlMnaseer2026Ensemble} extended this direction by testing six metaheuristic optimizations paired with ensemble methods, finding that LightGBM optimized with Particle Swarm Optimization achieved ROC-AUC of 0.92 and F1-score of 0.88 for construction risk classification. For megaproject contexts, Hovhannisyan et al.~\cite{Hovhannisyan2023DataDriven} demonstrated that Graph Neural Networks can learn from schedule network structure directly, capturing dependencies between parallel workstreams.
+The gradient boosting paradigm has proven highly effective. Abuassi et al.~\cite{Abuassi2025LightGBM} combined LightGBM with Harris Hawks Optimization (HHO) for schedule deviation and budget overrun prediction, outperforming Random Forest and XGBoost with RMSE of 15.32 days and \$25,840. Al Mnaseer~\cite{AlMnaseer2026Ensemble} extended this direction by testing six metaheuristic optimizations paired with ensemble methods, finding that LightGBM optimized with Particle Swarm Optimization achieved ROC-AUC of 0.92 and F1-score of 0.88 for construction risk classification. For megaproject contexts, Hovhannisyan et al.~\cite{Hovhannisyan2023DataDriven} demonstrated that Graph Neural Networks can learn from schedule network structure directly, capturing dependencies between parallel workstreams.
 
 These methods establish that ML-based schedule risk prediction is viable and accurate. Our work extends this literature by applying similar predictive frameworks to data center buildout announcements---a domain that has not yet been systematically studied with data-driven methods.
 
@@ -103,13 +115,13 @@ Event study methodology provides the statistical framework for measuring the imp
 
 Kothari and Warner~\cite{Kothari2007Econometrics} comprehensively reviewed over 500 event studies, confirming that short-horizon methods are reliable while long-horizon methods face serious limitations. For practical implementation, Ullah et al.~\cite{Ullah2021EventStudy} provide a step-by-step guide covering estimation window selection, event window specification, normal return models, and significance testing.
 
-Goldsmith-Pinkham and Lyu~\cite{GoldsmithPinkham2025Financial} identify a critical methodological concern: when factor models are misspecified---nearly certain in volatile periods---traditional event study estimators can produce inconsistent treatment effects. They propose synthetic control methods as a robust alternative, particularly relevant for our analysis period spanning 2020--2026. Our study applies the classical market model for comparability while acknowledging these limitations.
+Goldsmith-Pinkham and Lyu~\cite{GoldsmithPinkham2025Financial} identify a critical methodological concern: when factor models are misspe\-cified---nearly certain in volatile periods---traditional event study estimators can produce inconsistent treatment effects. They propose synthetic control methods as a robust alternative, particularly relevant for our analysis period spanning 2020--2026. Our study applies the classical market model for comparability while acknowledging these limitations.
 
 \subsection{Investment Announcements and Market Reactions}
 
 The scale of data center investment is unprecedented. Bain \& Company~\cite{Bain2025GlobalForecast} projects global data center capital expenditure exceeding \$1 trillion by 2030. Moody's~\cite{Moodys2025Outlook} and Lichtenberg~\cite{Lichtenberg2026OffBalance} highlight that hyperscaler off-balance-sheet commitments represent \$662 billion in risk---an exposure not fully reflected in market valuations.
 
-At the regulatory level, the JLARC~\cite{JLARC2024Virginia} report documents Virginia's emergence as the leading data center market---``Data Center Alley'' in Loudoun County---while also identifying constraints in power availability, water usage, and local opposition. Data Center Watch~\cite{DataCenterWatch2025Q1} reports that \$64 billion of US data center projects face blocking or delays, underscoring the gap between announcements and delivery that motivates our study.
+At the regulatory level, the JLARC~\cite{JLARC2024Virginia} report documents Virginia's emergence as the leading data center market---``Data Center Alley'' in Loudoun County---while identifying constraints in power availability, water use, and local opposition. Data Center Watch~\cite{DataCenterWatch2025Q1} reports that \$64 billion of US data center projects face blocking or delays, underscoring the gap between announcements and delivery that motivates our study.\looseness=-1
 
 Prior event study research on capital expenditure announcements finds measurable market reactions, with markets responding favorably to investment increases for high-growth-opportunity firms~\cite{MacKinlay1997Event}. Our study extends this literature by examining the specific case of data center buildout announcements, which combine elements of capital expenditure signaling, regulatory risk exposure, and supply chain constraint communication.
 
@@ -189,7 +201,7 @@ Our dataset comprises 5,295 announcements from 17 companies: 2,161 (40.8\%) high
   \label{fig:state_dist}
 \end{figure*}
 
-State-level data is available for 2,246 announcements (42\%). Texas leads with 309 (13.8\%), followed by Virginia (290, 12.9\%), California (213, 9.5\%), and DC (175, 7.8\%). Virginia's prominence reflects Loudoun County's ``Data Center Alley''~\cite{JLARC2024Virginia}. New York has the highest mean MW capacity (4,850~MW), driven by large-scale campus projects.
+State-level data is available for 2,246 announcements (42\%). Texas leads with 309 (13.8\%), followed by Virginia (290, 12.9\%), California (213, 9.5\%), and DC (175, 7.8\%). Virginia's prominence reflects Loudoun County's ``Data Center Alley''~\cite{JLARC2024Virginia}. New York has the highest mean MW capacity (4,850~MW), driven by large-scale campus projects.\looseness=-1
 
 % --- Geographic and Temporal Distribution ---
 \begin{table*}[t]
@@ -346,7 +358,7 @@ Completed announcements have mean tone 1.38 (positive), failed $-$1.55 (negative
 
 \subsection{Event Study Results}
 
-We computed exploratory CARs for 1,456 unique events. The $[-1,+1]$ window showed slightly positive but insignificant mean CAR. The $[-5,+5]$ window showed modest positive returns for hyperscaler announcements. The $[-20,+60]$ window revealed substantial cross-sectional variance. Given the heterogeneous nature of announcements (varying project sizes, companies, market conditions), these results should be interpreted as descriptive rather than causal. Confidence intervals were wide, and few individual CARs reached statistical significance at the 5\% level. Hyperscaler announcements produced more positive CARs than those from smaller REITs---a pattern suggestively consistent with the investment announcement literature~\cite{MacKinlay1997Event}, but warranting confirmation in larger samples.
+We computed exploratory CARs for 1,456 unique events. The $[-1,+1]$ window showed slightly positive but insignificant mean CAR. The $[-5,+5]$ window showed modest positive returns for hyperscaler announcements. The $[-20,+60]$ window revealed substantial cross-sectional variance. Given the heterogeneous nature of announcements (varying project sizes, companies, market conditions), these results should be interpreted as descriptive rather than causal. Confidence intervals were wide, and few individual CARs reached statistical significance at the 5\% level. Hyperscaler announcements produced more positive CARs than those from smaller REITs---a pattern suggestively consistent with the investment announcement literature~\cite{MacKinlay1997Event}, but warranting confirmation in larger samples.\looseness=-1
 
 %% ======================================================================
 %% 4. DISCUSSION
