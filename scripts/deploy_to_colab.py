@@ -16,7 +16,7 @@ from pathlib import Path
 
 SESSION = "buildout-pipeline"
 REPO_DIR = "/content/computer-data-analysis-report"
-TIMEOUT = 7200  # 2hr max for full pipeline
+TIMEOUT = 14400
 
 # ── Secrets (inlined for self-contained deploy) ────────────────────────
 CENSUS_API_KEY = "e8afaf7cff13d0d152e32bf98c0ac244c63db787"
@@ -55,8 +55,11 @@ def poll_status():
     )
     for line in r.stdout.strip().split("\n"):
         line = line.strip()
-        if line and line not in ("NONE",):
-            return line
+        if not line or line.startswith("[colab]"):
+            continue
+        if line == "NONE":
+            return "NONE"
+        return line
     return "NONE"
 
 # ── Main ───────────────────────────────────────────────────────────────
@@ -69,108 +72,126 @@ def main():
 
     # 2. Build setup + launch script
     log("=== Phase 2: Write setup+launch script ===")
-    launch_code = f"""#!/usr/bin/env python3
-'''Run on colab VM. Sets up env, writes runner, launches pipeline in bg.'''
+    # ── Runner script: does ALL work via nohup (no kernel timeout) ────
+    runner_script = """#!/usr/bin/env python3
+'''Runs on colab via nohup. Setup → pipeline → DVC push. No kernel dependency.'''
 import base64, os, subprocess, sys, time
 from pathlib import Path
 
+MARKER = "/tmp/pipeline_status"
+LOG = "/tmp/pipeline_output.log"
+RD = "/content/computer-data-analysis-report"
+
+def write_marker(msg):
+    with open(MARKER, "w") as f: f.write(msg)
+
+def log(msg):
+    with open(LOG, "a") as f: f.write(f"[{{time.time():.0f}}] {msg}\\n")
+
+# ── Phase A: Setup ──
 os.chdir("/content")
 
-# Write secrets
+# Secrets
 Path("/content/.env").write_text(
-    "CENSUS_API_KEY={ck}\\nFRED_API_KEY={fk}\\nOCI_ACCESS_KEY={ok}\\nOCI_SECRET_KEY={sk}\\n"
+    "CENSUS_API_KEY=e8afaf7cff13d0d152e32bf98c0ac244c63db787\\nFRED_API_KEY=4aeb77367579a1c44a91f61ed6b991fe\\n"
+    "OCI_ACCESS_KEY=542d2f34b5d73eb0b89705355f1ec6f4a0f4b44e\\nOCI_SECRET_KEY=ps/7lxHnEmGMoPK4EwYtRmpVOXqPbTK7qOkJpY791/k=\\n"
 )
-Path("/content/gcp_adc.json").write_bytes(base64.b64decode("{gcp}"))
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/content/gcp_adc.json"
-os.environ["GOOGLE_CLOUD_PROJECT"] = "project-21db66e7-39ca-4fda-b4e"
+gcp_b64 = "ewogICJhY2NvdW50IjogIiIsCiAgImNsaWVudF9pZCI6ICI3NjQwODYwNTE4NTAtNnFyNHA2Z3BpNmhuNTA2cHQ4ZWp1cTgzZGkzNDFodXIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLAogICJjbGllbnRfc2VjcmV0IjogImQtRkw5NVExOXE3TVFtRnBkN2hIRDBUeSIsCiAgInF1b3RhX3Byb2plY3RfaWQiOiAicHJvamVjdC0yMWRiNjZlNy0zOWNhLTRmZGEtYjRlIiwKICAicmVmcmVzaF90b2tlbiI6ICIxLy8wY2pXa1c0SnZSSlhkQ2dZSUFSQUFHQXdTTndGLUw5SXIzSzY3Y054UkRXWTdxVnA2ODlqVFBtQVM3bHFEeXBuNHdSYzVNNFFieUhVcHFaa25yM0doWGJ4RDJLc3JxUmh5Vkp3IiwKICAidHlwZSI6ICJhdXRob3JpemVkX3VzZXIiLAogICJ1bml2ZXJzZV9kb21haW4iOiAiZ29vZ2xlYXBpcy5jb20iCn0="
+Path("/content/gcp_adc.json").write_bytes(base64.b64decode(gcp_b64))
 
 # Clone
-r = subprocess.run(f"git clone --depth 1 https://github.com/Aidas-dev/computer-data-analysis-report.git {rdir}",
-                   shell=True, timeout=120)
-if r.returncode != 0:
-    print("CLONE_FAILED", flush=True); sys.exit(1)
-os.chdir("{rdir}")
+if not Path(RD).exists():
+    r = subprocess.run(
+        ["git", "clone", "--depth", "1",
+         "https://github.com/Aidas-dev/computer-data-analysis-report.git", RD],
+        capture_output=True, text=True, timeout=120
+    )
+    if r.returncode != 0:
+        write_marker("SETUP_FAILED:clone")
+        log(f"Clone failed: {{r.stderr[:200]}}")
+        sys.exit(1)
+    log("Clone OK")
 
-# Install deps
+# Install deps (first run only)
+os.chdir(RD)
 subprocess.run("pip install uv -q", shell=True, timeout=30)
+log("uv installed")
 subprocess.run("uv pip install --system -r requirements.txt -q", shell=True, timeout=300)
 subprocess.run("uv pip install --system newspaper3k lxml_html_clean trafilatura gridstatus -q",
                shell=True, timeout=120)
+log("Deps installed")
 
-# DVC setup
-subprocess.run("dvc remote modify --local oracle_remote access_key_id '{ok}'", shell=True)
-subprocess.run("dvc remote modify --local oracle_remote secret_access_key '{sk}'", shell=True)
+# DVC pull
+os.environ["AWS_ACCESS_KEY_ID"] = "542d2f34b5d73eb0b89705355f1ec6f4a0f4b44e"
+os.environ["AWS_SECRET_ACCESS_KEY"] = "ps/7lxHnEmGMoPK4EwYtRmpVOXqPbTK7qOkJpY791/k="
+subprocess.run(["dvc", "remote", "modify", "--local", "oracle_remote",
+                "access_key_id", os.environ["AWS_ACCESS_KEY_ID"]], capture_output=True)
+subprocess.run(["dvc", "remote", "modify", "--local", "oracle_remote",
+                "secret_access_key", os.environ["AWS_SECRET_ACCESS_KEY"]], capture_output=True)
 subprocess.run("dvc pull -q", shell=True, timeout=300)
+log("DVC pull OK")
 
-# Write pipeline runner
-runner_script = '''#!/usr/bin/env python3
-import subprocess, os, sys
-MARKER = "/tmp/pipeline_status"
-LOG = "/tmp/pipeline_output.log"
-RD = "{rdir}"
-
+# ── Phase B: Pipeline steps ──
 def run_step(num):
-    with open(MARKER, "w") as f: f.write(f"step{{num}}_starting")
-    print(f"=== STEP {{num}} ===", flush=True)
+    write_marker(f"step{num}_starting")
+    log(f"Step {num} starting")
     with open(LOG, "a") as logf:
         r = subprocess.run(
-            ["python3", "-u", f"scripts/pipeline_step{{num}}.py"],
-            cwd=RD, timeout=1800,
+            ["python3", "-u", f"scripts/pipeline_step{num}.py"],
+            cwd=RD, timeout=3600,
             stdout=logf, stderr=subprocess.STDOUT
         )
     if r.returncode != 0:
-        with open(MARKER, "w") as f: f.write(f"step{{num}}_FAILED")
+        write_marker(f"step{num}_FAILED")
+        log(f"Step {num} FAILED rc={{r.returncode}}")
         return False
-    subprocess.run(["cp", f"{RD}/data/processed/buildout_promises_real.csv.dvc",
-                    "/tmp/buildout_promises_real.csv.dvc"], capture_output=True)
-    subprocess.run(["cp", f"{RD}/data/raw/buildout_candidates_gkg.csv.dvc",
-                    "/tmp/buildout_candidates_gkg.csv.dvc"], capture_output=True)
-    subprocess.run(["cp", f"{RD}/data/raw/buildout_events_raw.csv.dvc",
-                    "/tmp/buildout_events_raw.csv.dvc"], capture_output=True)
-    with open(MARKER, "w") as f: f.write(f"step{{num}}_done")
+    write_marker(f"step{num}_done")
+    log(f"Step {num} OK")
     return True
 
-# Run steps sequentially
 for s in [12, 13, 14]:
     if not run_step(s):
-        with open(MARKER, "w") as f: f.write(f"FAILED_at_step{{s}}")
+        write_marker(f"FAILED_at_step{s}")
         sys.exit(1)
 
-# DVC push all
-with open(MARKER, "w") as f: f.write("pushing")
+# ── Phase C: DVC push ──
+write_marker("pushing")
 subprocess.run(["dvc", "push"], cwd=RD, timeout=600)
-with open(MARKER, "w") as f: f.write("ALL_DONE")
-print("=== PIPELINE COMPLETE ===", flush=True)
-'''
-
-Path("/tmp/run_pipeline.py").write_text(runner_script)
-Path("/tmp/pipeline_output.log").write_text("")
-
-# Launch pipeline in background via nohup (shell, not kernel)
-subprocess.Popen(
-    ["nohup", "python3", "-u", "/tmp/run_pipeline.py"],
-    stdout=open("/tmp/nohup_stdout.log", "w"),
-    stderr=subprocess.STDOUT,
-    preexec_fn=os.setpgrp  # detach from process group
-)
-
-print("LAUNCHED", flush=True)
-time.sleep(2)
-print(open("/tmp/pipeline_status").read() if Path("/tmp/pipeline_status").exists() else "starting", flush=True)
+write_marker("ALL_DONE")
+log("Pipeline complete!")
 """
 
-    launch_code = launch_code.format(
-        ck=CENSUS_API_KEY, fk=FRED_API_KEY,
-        ok=OCI_ACCESS_KEY, sk=OCI_SECRET_KEY,
-        gcp=GCP_ADC_B64, rdir=REPO_DIR
-    )
+    # Encode runner as base64 for inline embedding in launch script
+    runner_b64 = base64.b64encode(runner_script.encode()).decode()
 
+    log("=== Phase 3: Upload + launch runner (via colab exec -f) ===")
+    launch_code = f"""#!/usr/bin/env python3
+import base64, os, subprocess, sys, time
+RD = "{REPO_DIR}"
+
+# Clone
+r = subprocess.run(["git", "clone", "--depth", "1",
+    "https://github.com/Aidas-dev/computer-data-analysis-report.git", RD],
+    capture_output=True, text=True, timeout=120)
+if r.returncode != 0:
+    print(f"CLONE_FAIL:{{r.stderr[:200]}}", flush=True); sys.exit(1)
+print("CLONE_OK", flush=True)
+
+# Decode and write runner
+runner_py = base64.b64decode("{runner_b64}").decode()
+Path(RD).mkdir(parents=True, exist_ok=True)
+open("/tmp/run_pipeline.py", "w").write(runner_py)
+
+# Launch via nohup
+subprocess.Popen(["nohup", "python3", "-u", "/tmp/run_pipeline.py"],
+    stdout=open("/tmp/nohup_stdout.log", "w"),
+    stderr=subprocess.STDOUT,
+    preexec_fn=os.setpgrp)
+print("LAUNCHED", flush=True)
+"""
     launcher_path = "/tmp/_colab_launch.py"
     Path(launcher_path).write_text(launch_code)
-
-    # 3. Execute launch script on colab (fast — just setup + Popen)
-    log("=== Phase 3: Launch on colab ===")
-    sh(f"colab exec -s {SESSION} -f {launcher_path}", timeout=180)
+    sh(f"colab exec -s {SESSION} -f {launcher_path}", timeout=120)
 
     # 4. Poll for completion
     log("=== Phase 4: Poll for completion ===")
@@ -189,8 +210,9 @@ print(open("/tmp/pipeline_status").read() if Path("/tmp/pipeline_status").exists
             )
             for ln in r.stdout.strip().split("\n"):
                 ln = ln.strip()
-                if ln and ln not in ("N/A",):
-                    print(f"  {ln[:200]}")
+                if not ln or ln.startswith("[colab]") or ln == "N/A":
+                    continue
+                print(f"  {ln[:200]}")
         if status in ("ALL_DONE",):
             log("Pipeline complete!")
             break
