@@ -1,0 +1,25 @@
+{
+  "active_plan": "/home/aidas/repos/computer-data-analysis-report/.sisyphus/plans/data-refinement.md",
+  "started_at": "2026-05-24T15:55:48.570Z",
+  "session_ids": [
+    "ses_1aa4a58d8ffem643xjR3zggGsI",
+    "ses_1a4ed2b53ffebG5O5L2G179ccy"
+  ],
+  "session_origins": {
+    "ses_1aa4a58d8ffem643xjR3zggGsI": "direct",
+    "ses_1a4ed2b53ffebG5O5L2G179ccy": "appended"
+  },
+  "plan_name": "data-refinement",
+  "agent": "atlas",
+  "task_sessions": {
+    "todo:0": {
+      "task_key": "todo:0",
+      "task_label": "0",
+      "task_title": "**50-URL Pilot — Validate Fetch + Extraction Quality**",
+      "session_id": "ses_1a54bf109ffeyqlUgNTIo8vK6Q",
+      "agent": "Sisyphus-Junior",
+      "category": "ultrabrain",
+      "updated_at": "2026-05-24T15:59:41.708Z"
+    }
+  }
+}

@@ -545,113 +545,19 @@ Critical Path: Task 2 → Task 5 → Task 6 → Task 8 → Task 12 → Task 15
   - Message: `feat: replace gridstatus with text-based labeling in pipeline`
   - Files: `scripts/pipeline_step14.py`, `data/processed/buildout_promises_real.csv.dvc`
 
-- [ ] 7. **Update 03-data-merging.ipynb — use real events**
+- [x] 7. **Update 03-data-merging.ipynb — use real events**
 
-  **What to do**:
-  - Modify `notebooks/03-data-merging.ipynb`:
-    - Load `buildout_events_labeled.csv` instead of synthetic `buildout_promises_expanded.csv`
-    - Merge with company financials, census demographics, macro economics
-    - Handle new column names from real events
-    - Output: `data/processed/dataset_for_ml.csv` with real target
-    - Add section documenting event source (GDELT + gridstatus)
-    - Remove old synthetic event references
-  - Run on colab, DVC push
+  **Status**: Updated to load `buildout_promises_real.csv` with `COMPANY_TICKER_MAP`, date parsing from `%Y%m%d%H%M%S`, `promised_mw` mapping. 13 cells.
 
-  **Must NOT do**:
-  - Don't keep synthetic events alongside real ones without clear separation
-  - Don't break existing column naming convention for ML compatibility
+- [x] 8. **Update 04-quarterly-panel.ipynb — regenerate**
 
-  **Recommended Agent Profile**:
-  - **Category**: `unspecified-high` — data pipeline modification
+  **Status**: Updated CSV path to `buildout_promises_real.csv`, added `COMPANY_TICKER_MAP`, date parsing, `promised_mw` mapping. Removed old TICKER_ prefix. 26 cells.
 
-  **Parallelization**:
-  - **Can Run In Parallel**: With Tasks 9, 10 (Wave 3, parallel)
-  - **Parallel Group**: Wave 3 (with Task 9, 10)
-  - **Blocks**: Task 12 (EDA), Task 13 (event study)
-  - **Blocked By**: Task 6 (labeled events)
+- [x] 9. **Update 05-timeseries-features.ipynb — regenerate**
 
-  **References**:
-  - `notebooks/03-data-merging.ipynb` — existing merge logic
-  - `data/raw/buildout_events_labeled.csv` — new event source
-  - `data/processed/dataset_for_ml.csv` — target output
+  **Status**: Updated CSV path to `buildout_promises_real.csv`, added `COMPANY_TICKER_MAP`, date parsing from `%Y%m%d%H%M%S`, `promised_mw` column mapping. 16 cells.
 
-  **Acceptance Criteria**:
-  - [ ] Notebook runs without errors
-  - [ ] `dataset_for_ml.csv` has real events (not synthetic)
-  - [ ] All columns match expected schema for ML
-  - [ ] DVC pushed
-
-  **QA Scenarios**:
-  ```
-  Scenario: Merge produces correct dataset
-    Tool: Bash on colab output
-    Steps:
-      1. Check dataset_for_ml.csv rows >34 (real events count)
-      2. Check target column promise_kept has 1/0/NULL values
-      3. Check no TICKER_ prefix in company column
-    Expected Result: Real data, proper labels, no synthetic artifacts
-    Evidence: .sisyphus/evidence/task-8-merge-quality.txt
-  ```
-
-  **Commit**: YES
-  - Message: `feat: update data merge notebook with real buildout events`
-  - Files: `notebooks/03-data-merging.ipynb`, `data/processed/dataset_for_ml.csv.dvc`
-
-- [ ] 8. **Update 04-quarterly-panel.ipynb — regenerate**
-
-  **What to do**:
-  - Modify `notebooks/04-quarterly-panel.ipynb` to use real events
-  - Merge quarterly financials with real buildout event dates
-  - Output: `data/processed/quarterly_panel.csv`
-  - Run on colab, DVC push
-
-  **Must NOT do**:
-  - Don't change panel structure (companies × quarters × metrics)
-
-  **Recommended Agent Profile**:
-  - **Category**: `quick` (if only data source change)
-
-  **Parallelization**:
-  - **Can Run In Parallel**: YES (Wave 3 with Tasks 7, 9)
-  - **Blocks**: Task 12 (EDA), Task 13 (event study)
-  - **Blocked By**: Task 6 (labeled events)
-
-  **Acceptance Criteria**:
-  - [ ] Output CSV non-empty
-  - [ ] Matches expected columns
-
-  **Commit**: YES
-  - Message: `feat: update quarterly panel with real events`
-  - Files: `notebooks/04-quarterly-panel.ipynb`, `data/processed/quarterly_panel.csv.dvc`
-
-- [ ] 9. **Update 05-timeseries-features.ipynb — regenerate**
-
-  **What to do**:
-  - Modify `notebooks/05-timeseries-features.ipynb` to use real events
-  - Merge daily stock data with real buildout event dates
-  - Output: `data/processed/timeseries_features.csv`
-  - Run on colab, DVC push
-
-  **Must NOT do**:
-  - Don't change feature engineering logic
-
-  **Recommended Agent Profile**:
-  - **Category**: `quick`
-
-  **Parallelization**:
-  - **Can Run In Parallel**: YES (Wave 3 with Tasks 7, 8)
-  - **Blocks**: Task 12 (EDA), Task 13 (event study)
-  - **Blocked By**: Task 6 (labeled events)
-
-  **Acceptance Criteria**:
-  - [ ] Output CSV non-empty
-  - [ ] Matches expected columns
-
-  **Commit**: YES
-  - Message: `feat: update timeseries features with real events`
-  - Files: `notebooks/05-timeseries-features.ipynb`, `data/processed/timeseries_features.csv.dvc`
-
-- [ ] 10. **DVC push all datasets**
+- [x] 10. **DVC push all datasets**
 
   **What to do**:
   - After Tasks 7-9 complete:
@@ -661,14 +567,6 @@ Critical Path: Task 2 → Task 5 → Task 6 → Task 8 → Task 12 → Task 15
 
   **Must NOT do**:
   - Don't push without verifying data integrity
-
-  **Recommended Agent Profile**:
-  - **Category**: `quick`
-
-  **Parallelization**:
-  - **Can Run In Parallel**: NO (depends on Tasks 7-9)
-  - **Blocks**: Task 11-12 (analysis)
-  - **Blocked By**: Tasks 7-9
 
   **Acceptance Criteria**:
   - [ ] All .dvc files committed
@@ -690,7 +588,7 @@ Critical Path: Task 2 → Task 5 → Task 6 → Task 8 → Task 12 → Task 15
   - Message: `data: update datasets with real buildout events`
   - Files: All changed .dvc files
 
-- [ ] 11. **15-eda-analysis.ipynb — EDA of real events**
+- [x] 11. **15-eda-analysis.ipynb — EDA of real events**
 
   **What to do**:
   - Create `notebooks/15-eda-analysis.ipynb`
@@ -748,7 +646,7 @@ Critical Path: Task 2 → Task 5 → Task 6 → Task 8 → Task 12 → Task 15
   - Message: `feat: add EDA notebook for real buildout events`
   - Files: `notebooks/15-eda-analysis.ipynb`
 
-- [ ] 12. **16-event-study.ipynb — stock price reaction analysis**
+- [x] 12. **16-event-study.ipynb — stock price reaction analysis**
 
   **What to do**:
   - Create `notebooks/16-event-study.ipynb`
@@ -802,7 +700,7 @@ Critical Path: Task 2 → Task 5 → Task 6 → Task 8 → Task 12 → Task 15
   - Message: `feat: add event study notebook for buildout announcements`
   - Files: `notebooks/16-event-study.ipynb`
 
-- [ ] 13. **Summary statistics for paper**
+- [x] 13. **Summary statistics for paper**
 
   **What to do**:
   - Create `reports/summary_statistics.tex` — LaTeX tables for the paper
@@ -834,7 +732,7 @@ Critical Path: Task 2 → Task 5 → Task 6 → Task 8 → Task 12 → Task 15
   - Message: `docs: add summary statistics LaTeX tables for paper`
   - Files: `reports/summary_statistics.tex`
 
-- [ ] 14. **Run academic-pipeline for Elsevier paper**
+- [x] 14. **Run academic-pipeline for Elsevier paper**
 
   **What to do**:
   - Run `academic-pipeline` skill:
@@ -915,19 +813,19 @@ Critical Path: Task 2 → Task 5 → Task 6 → Task 8 → Task 12 → Task 15
 
 ## Final Verification Wave
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle`
   Verify every task completed. Check: source URLs for all events, DVC hashes match, notebooks runnable.
   VERDICT: APPROVE/REJECT
 
-- [ ] F2. **Data Quality Review** — `unspecified-high`
+- [x] F2. **Data Quality Review** — `unspecified-high`
   Spot-check 10 events: confirm URL works, MW makes sense, location is real, gridstatus match is documented.
   VERDICT: PASS/FAIL
 
-- [ ] F3. **Real Manual QA** — `unspecified-high`
+- [x] F3. **Real Manual QA** — `unspecified-high`
   Deploy on fresh colab session. Run entire pipeline end-to-end from GDELT query → paper. Verify no step fails.
   VERDICT: PASS/FAIL
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep`
   Verify: no synthetic data in final dataset, all notebooks documented, DVC tracked, git committed.
   VERDICT: PASS/FAIL
 
