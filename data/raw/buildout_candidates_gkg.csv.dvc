@@ -1,0 +1,8 @@
+# BQ GDELT GKG query output.
+# Regenerable: scripts/pipeline_step12.py or notebooks/12-gdelt-domain-filter.ipynb
+# Output lost from colab session before DVC push.
+# Processed events tracked at data/raw/buildout_events_raw.csv.dvc
+outs:
+- md5: d41d8cd98f00b204e9800998ecf8427e
+  size: 0
+  path: buildout_candidates_gkg.csv
