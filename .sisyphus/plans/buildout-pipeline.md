@@ -507,6 +507,44 @@ Critical Path: Task 2 → Task 5 → Task 6 → Task 8 → Task 12 → Task 15
   - Message: `feat: add gridstatus labeling notebook for buildout events`
   - Files: `notebooks/14-gridstatus-labeling.ipynb`, `data/raw/buildout_events_labeled.csv.dvc`
 
+- [x] 6b. **Repurpose step14: text-based labeling from article content**
+
+  **Context**: Gridstatus interconnection queues are for power generation, not data centers. Step13 extracted article text for all 5,295 events. Use keyword heuristics on article text for labeling instead.
+
+  **Approach**: Classify each event's `is_buildout` field (already extracted in step13) + add `promise_kept` label using text heuristics:
+  - **kept** (promise_kept=1): keywords like "opened", "began operations", "launched", "goes live", "commissioned", "cut the ribbon", "inaugurated"
+  - **failed** (promise_kept=0): keywords like "canceled", "scrapped", "shelved", "delayed indefinitely", "abandoned", "halted"
+  - **in_progress** (promise_kept=NULL): keywords like "under construction", "breaking ground", "building", "construction underway", "started construction"
+  - **pending** (promise_kept=NULL): default for weakly positive announcements, "announced", "to build", "planned", "proposed"
+
+  **Modify** `scripts/pipeline_step14.py` to:
+  1. Load `buildout_events_raw.csv` from step13
+  2. Apply keyword classification to `raw_text_excerpt` column
+  3. Add columns: `promise_kept` (1/0/NULL), `label_source` ("text_keywords")
+  4. Preserve all existing columns from step13
+  5. Output: `data/processed/buildout_promises_real.csv`
+  6. DVC push
+
+  **Must NOT do**:
+  - No LLM/API call for classification (cost prohibitive at 5K events)
+  - No manual review per event
+  - No gridstatus dependency
+
+  **Parallelization**: Sequential after task 6a
+  **Blocks**: Task 7 (merge)
+  **Blocked By**: Task 5 (extraction output)
+
+  **Acceptance Criteria**:
+  - [ ] All 5,295 events labeled (kept/failed/pending)
+  - [ ] At least 10 "kept" and 5 "failed" events
+  - [ ] `promise_kept` column is 1/0/NULL (not string)
+  - [ ] Output CSV DVC pushed
+  - [ ] Output columns include all step13 fields + label
+
+  **Commit**: YES
+  - Message: `feat: replace gridstatus with text-based labeling in pipeline`
+  - Files: `scripts/pipeline_step14.py`, `data/processed/buildout_promises_real.csv.dvc`
+
 - [ ] 7. **Update 03-data-merging.ipynb — use real events**
 
   **What to do**:
