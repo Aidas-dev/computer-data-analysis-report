@@ -5,6 +5,7 @@ Extracted from notebooks/14-gridstatus-labeling.ipynb.
 Pulls ISO queue data, cross-references buildout events, labels outcomes.
 """
 import os, sys, re, warnings, subprocess
+from collections import defaultdict
 from pathlib import Path
 
 import pandas as pd
@@ -36,11 +37,11 @@ def _init_isos():
     ISO_DEFS = [
         ('CAISO', gridstatus.CAISO, 'CAISO', ['CA']),
         ('MISO', gridstatus.MISO, 'MISO', ['IL', 'IN', 'MI', 'MN', 'WI', 'IA', 'MO', 'AR', 'LA', 'MS', 'ND', 'SD']),
-        ('PJM', gridstatus.PJM, 'PJM', ['PA', 'NJ', 'MD', 'DE', 'DC', 'OH', 'WV', 'VA', 'NC', 'KY', 'TN']),
-        ('ERCOT', gridstatus.ERCOT, 'ERCOT', ['TX']),
         ('NYISO', gridstatus.NYISO, 'NYISO', ['NY']),
         ('SPP', gridstatus.SPP, 'SPP', ['KS', 'NE', 'OK', 'NM']),
         ('ISONE', gridstatus.ISONE, 'ISONE', ['CT', 'MA', 'ME', 'NH', 'RI', 'VT']),
+        ('Ercot', gridstatus.Ercot, 'ERCOT', ['TX']),
+        ('IESO', gridstatus.IESO, 'IESO', ['ON']),
     ]
     STATE_TO_ISO = {}
     for iso_name, iso_class, iso_code, states in ISO_DEFS:
@@ -56,7 +57,11 @@ def log(msg):
 
 
 def parse_dates_robust(series):
-    return pd.to_datetime(series, errors='coerce', infer_datetime_format=True)
+    try:
+        return pd.to_datetime(series, errors='coerce')
+    except (ValueError, TypeError):
+        # Handle mixed tz-aware and tz-naive values
+        return pd.to_datetime(series, errors='coerce', utc=True)
 
 
 def normalize_company(name):
@@ -79,9 +84,8 @@ def normalize_location(loc):
     return loc
 
 
-def company_name_match(event_company, queue_name):
-    ec = normalize_company(event_company)
-    qn = normalize_company(queue_name)
+def company_name_match(ec, qn):
+    """ec, qn are pre-normalized company strings (caller normalizes once)."""
     if not ec or not qn:
         return 0.0
     if ec == qn:
@@ -97,15 +101,13 @@ def company_name_match(event_company, queue_name):
     return 0.0
 
 
-def location_match(event_city, event_state, queue_county):
-    if pd.isna(event_state) or pd.isna(queue_county):
+def location_match(ev_city_norm, ev_state, q_loc_norm):
+    """ev_city_norm and q_loc_norm are pre-normalized. ev_state is raw."""
+    if pd.isna(ev_state) or not q_loc_norm:
         return 0.0
-    q_loc = normalize_location(str(queue_county))
-    ev_city = normalize_location(str(event_city)) if pd.notna(event_city) else ''
-    ev_state = str(event_state).upper().strip()
-    if ev_state.lower() not in q_loc:
+    if ev_state.lower() not in q_loc_norm:
         return 0.0
-    if ev_city and ev_city in q_loc:
+    if ev_city_norm and ev_city_norm in q_loc_norm:
         return 1.0
     return 0.3
 
@@ -140,13 +142,13 @@ def date_proximity(event_date, queue_date, max_days=180):
 
 def score_match(event, queue_entry):
     company_score = company_name_match(
-        event.get('company'),
-        queue_entry.get('project_name', '')
+        event.get('_norm_company', ''),
+        queue_entry.get('_norm_name', '')
     )
     location_score = location_match(
-        event.get('location_city'),
+        event.get('_norm_location_city', ''),
         event.get('location_state'),
-        queue_entry.get('queue_county')
+        queue_entry.get('_norm_county', '')
     )
     mw_score = mw_range_match(
         event.get('mw_capacity'),
@@ -159,12 +161,52 @@ def score_match(event, queue_entry):
     return (company_score * 40) + (location_score * 30) + (mw_score * 20) + (date_score * 10)
 
 
-def find_best_queue_match(event, queue_df, min_score=50):
+def _build_company_index(queue_df):
+    """Build word→indices map from normalized queue project names.
+    Returns dict[str, set[int]] mapping each word to set of row indices."""
+    idx = defaultdict(set)
+    for i, name in enumerate(queue_df['_norm_name']):
+        if not name:
+            continue
+        for word in name.split():
+            if len(word) >= 2:
+                idx[word].add(i)
+    return idx
+
+def _get_candidate_indices(event_norm_company, company_idx):
+    """Return set of queue row indices sharing at least one word with event company."""
+    words = set(event_norm_company.split())
+    candidates = set()
+    for word in words:
+        if word in company_idx:
+            candidates.update(company_idx[word])
+    return candidates
+
+def find_best_queue_match(event, queue_df, min_score=50, company_idx=None):
+    # Skip matching for events without location — can't meaningfully match without state
     iso = event.get('iso_region')
+    event_state = event.get('location_state')
+    if not iso and (pd.isna(event_state) or not str(event_state).strip()):
+        return None, 0.0
     if iso and iso in queue_df['iso_region'].values:
         candidates = queue_df[queue_df['iso_region'] == iso]
     else:
         candidates = queue_df
+
+    # Company-index filter: only score queue entries sharing a company word with event
+    if company_idx is not None:
+        event_words = set(event.get('_norm_company', '').split())
+        if event_words:
+            candidate_inds = set()
+            for word in event_words:
+                if word in company_idx:
+                    candidate_inds.update(company_idx[word])
+            if candidate_inds:
+                # Intersect with ISO-filtered candidates (by index position)
+                candidates = candidates.iloc[list(
+                    candidate_inds & set(candidates.index)
+                )] if len(candidates) > 0 else candidates
+
     best_score = 0
     best_match = None
     for _, qentry in candidates.iterrows():
@@ -239,10 +281,10 @@ def main():
     failed_isos = []
 
     for iso_name, iso_class, iso_code, states in ISO_DEFS:
-        log(f"Pulling {iso_name} ({iso_code})...", end=' ')
+        log(f"Pulling {iso_name} ({iso_code})...")
         try:
             iso = iso_class()
-            qdf = iso.get_interconnection_queues()
+            qdf = iso.get_interconnection_queue()
             if qdf is not None and len(qdf) > 0:
                 qdf['iso_region'] = iso_code
                 queue_dfs.append(qdf)
@@ -363,6 +405,23 @@ def main():
     if 'mw_capacity' in df_events.columns:
         df_events['mw_capacity'] = pd.to_numeric(df_events['mw_capacity'], errors='coerce')
 
+    log("Pre-normalizing text columns for matching...")
+    df_events['_norm_company'] = df_events['company'].apply(normalize_company)
+    df_events['_norm_location_city'] = df_events['location_city'].apply(
+        lambda x: normalize_location(str(x)) if pd.notna(x) else ''
+    )
+    df_events['_norm_location_state'] = df_events['location_state'].apply(
+        lambda x: str(x).upper().strip() if pd.notna(x) else ''
+    )
+    df_queue['_norm_name'] = df_queue['project_name'].apply(
+        lambda x: normalize_company(str(x)) if pd.notna(x) else ''
+    )
+    df_queue['_norm_county'] = df_queue['queue_county'].apply(
+        lambda x: normalize_location(str(x)) if pd.notna(x) else ''
+    )
+
+    company_idx = _build_company_index(df_queue)
+
     matches = []
     total_events = len(df_events)
     log(f"Cross-referencing {total_events} events vs {len(df_queue)} queue projects...")
@@ -373,7 +432,10 @@ def main():
         return
 
     for idx, event in df_events.iterrows():
-        best_match, score = find_best_queue_match(event, df_queue)
+        best_match = None
+        score = 0.0
+        if pd.notna(event.get('iso_region')):
+            best_match, score = find_best_queue_match(event, df_queue, company_idx=company_idx)
         if best_match is not None:
             matches.append({
                 'event_idx': idx,

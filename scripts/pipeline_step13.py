@@ -202,28 +202,40 @@ def extract_mw(text):
     return max(found_values)
 
 
+VALID_STATES = {
+    'AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN',
+    'IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH',
+    'NJ','NM','NY','NC','ND','OH','OK','OR','PA','PR','RI','SC','SD','TN','TX',
+    'UT','VT','VA','VI','WA','WV','WI','WY'
+}
+
 def extract_location(text, v2_locations=None):
     city, state = None, None
     if v2_locations and isinstance(v2_locations, str) and v2_locations.strip():
         try:
             for loc_entry in v2_locations.split(';'):
-                parts = loc_entry.strip().split('|')
-                if len(parts) >= 5:
-                    city = parts[4] if parts[4] and parts[4] != 'None' else None
-                    state = parts[3] if parts[3] and parts[3] != 'None' else None
-                    country = parts[2] if len(parts) > 2 else ''
-                    if country.strip().upper() in ('US', 'UNITED STATES', 'USA', ''):
-                        if city and state:
-                            state_clean = state.split(',')[0].strip()
-                            if len(state_clean) == 2:
-                                return city, state_clean
+                parts = loc_entry.strip().split('#')
+                # V2Locations format: count#locationName#countryCode#ADM1Code#ADM2Code#lat#lon#featureID
+                if len(parts) >= 8:
+                    country = parts[2].strip().upper()
+                    loc_name = parts[1].strip()
+                    adm1 = parts[3].strip()
+                    if country == 'US' and len(adm1) >= 4:
+                        state_code = adm1[2:]
+                        if len(state_code) == 2 and state_code in VALID_STATES:
+                            if ',' in loc_name:
+                                city_part = loc_name.split(',')[0].strip()
+                                if city_part.lower() not in ('american', 'united states', 'us'):
+                                    city = city_part
+                            return city, state_code
         except Exception:
             pass
     if text:
         matches = re.findall(LOCATION_PATTERN, text)
         if matches:
             city, state = matches[-1]
-            return city.strip(), state.strip()
+            if state in VALID_STATES:
+                return city.strip(), state.strip()
     return None, None
 
 
