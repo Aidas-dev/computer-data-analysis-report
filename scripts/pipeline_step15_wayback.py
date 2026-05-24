@@ -29,7 +29,7 @@ import pandas as pd
 import requests
 from tqdm import tqdm
 
-warnings.filtergen('ignore')
+warnings.filterwarnings('ignore')
 
 try:
     import trafilatura
