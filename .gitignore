@@ -39,6 +39,9 @@ models/*
 *.aux
 *.log
 *.out
+*.bbl
+*.blg
+*.spl
 *.toc
 *.fls
 *.fdb_latexmk

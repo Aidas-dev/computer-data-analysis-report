@@ -25,46 +25,91 @@ MARKER = "/tmp/done_pipeline_step14"
 INPUT_PATH = "data/raw/buildout_events_raw.csv"
 OUTPUT_PATH = "data/processed/buildout_promises_real.csv"
 
-# ── Keyword lists (case-insensitive, checked on extracted_text_snippet) ──
+# ── Keyword lists ──
+# Sorted by length (longest first) to avoid false positives from short substrings.
+# Case-insensitive matching on extracted_text_snippet (and title if available).
 
-KEPT_KEYWORDS = [
-    'opened', 'began operations', 'goes live', 'went live', 'is now live',
-    'commissioned', 'cut the ribbon', 'inaugurated', 'now open',
-    'opening ceremony', 'commenced operations',
-    'fully operational', 'became operational', 'has launched', 'has opened',
+KEPT_KEYWORDS = sorted([
+    # Construction completion
+    'achieved substantial completion', 'substantially complete',
     'completed construction', 'construction complete',
-]
+    'reached completion', 'project completed', 'phase completed',
+    'first phase operational', 'initial phase live',
+    # Launch / go-live (longer phrases first)
+    'formally launched', 'declared open', 'now serving customers',
+    'started operations', 'commenced operations',
+    'opening ceremony', 'cut the ribbon',
+    'fully operational', 'became operational',
+    'began operations', 'began offering',
+    'started serving', 'began operations',
+    'goes live', 'went live', 'is now live', 'has gone live',
+    'came online', 'went online', 'brought online',
+    'has launched', 'has opened',
+    'now open', 'now live',
+    'in production', 'live and running',
+    'commissioned', 'inaugurated', 'opened',
+    'delivered',
+], key=len, reverse=True)
 
-FAILED_KEYWORDS = [
-    'canceled', 'cancelled', 'scrapped', 'shelved', 'abandoned',
-    'delayed indefinitely', 'halted', 'suspended', 'put on hold',
-    'no longer planned', 'will not build', 'pulled the plug',
-]
+FAILED_KEYWORDS = sorted([
+    # Full cancellation (longest first)
+    'indefinitely postponed', 'postponed indefinitely',
+    'delayed indefinitely', 'paused indefinitely',
+    'deferred indefinitely',
+    'facing cancellation', 'facing delays',
+    'significantly delayed', 'hit with delays',
+    'no longer planned', 'not moving forward',
+    'will not build', 'pulled the plug',
+    'construction halted', 'construction suspended',
+    'project canceled', 'project cancelled',
+    'stopped work', 'work stopped',
+    'on the back burner', 'placed on hold',
+    'put on hold', 'under review',
+    'scaling back', 'scaled back',
+    # Core failure terms
+    'canceled', 'cancelled',
+    'scrapped', 'shelved', 'abandoned',
+    'halted', 'suspended', 'mothballed',
+], key=len, reverse=True)
 
 
 def log(msg):
     print(f"[step14] {msg}", flush=True)
 
 
-def classify_promise(text_snippet):
-    """Return (promise_kept: int|None, label_source: str)."""
-    if pd.isna(text_snippet) or not isinstance(text_snippet, str) or not text_snippet.strip():
-        return None, 'text_keywords'
+def classify_promise(text_snippet, title_snippet=None):
+    """Return (promise_kept: int|None, label_source: str, matched_on: str).
 
-    lower = text_snippet.lower()
+    Matches keywords on text_snippet. If title_snippet provided, also checks
+    that. Returns which source matched: 'text', 'title', or ''.
+    """
+    matched_on = ''
 
-    # Priority 1: kept keywords (first match wins)
-    for kw in KEPT_KEYWORDS:
-        if kw in lower:
-            return 1, 'text_keywords'
+    def _check(text):
+        """Check a single text string, return (label, source_tag) or (None, '')."""
+        if pd.isna(text) or not isinstance(text, str) or not text.strip():
+            return None, ''
+        lower = text.lower()
+        for kw in KEPT_KEYWORDS:
+            if kw in lower:
+                return 1, 'text_keywords'
+        for kw in FAILED_KEYWORDS:
+            if kw in lower:
+                return 0, 'text_keywords'
+        return None, ''
 
-    # Priority 2: failed keywords
-    for kw in FAILED_KEYWORDS:
-        if kw in lower:
-            return 0, 'text_keywords'
+    # Check text snippet first
+    label, src = _check(text_snippet)
+    if label is not None:
+        return label, src, 'text'
 
-    # Everything else: pending/unknown
-    return None, 'text_keywords'
+    # Check title if available
+    if title_snippet is not None:
+        label, src = _check(title_snippet)
+        if label is not None:
+            return label, src, 'title'
+
+    return None, 'text_keywords', ''
 
 
 def main():
@@ -98,19 +143,30 @@ def main():
         log("WARNING: 'extracted_text_snippet' column missing, all will be pending")
         df['extracted_text_snippet'] = ''
 
+    has_title = 'title' in df.columns
+
     n_kept = 0
     n_failed = 0
     n_pending = 0
+    n_title_matched = 0
 
     kept_list = []
     failed_list = []
     pending_list = []
+    text_matched_list = []
+    title_matched_list = []
 
     for idx, row in df.iterrows():
         snippet = row.get('extracted_text_snippet', '')
-        promise_kept, label_source = classify_promise(snippet)
+        title_snippet = row.get('title') if has_title else None
+        promise_kept, label_source, matched_on = classify_promise(snippet, title_snippet)
         df.at[idx, 'promise_kept'] = promise_kept
         df.at[idx, 'label_source'] = label_source
+        df.at[idx, 'text_matched'] = 1 if matched_on == 'text' else 0
+        df.at[idx, 'title_matched'] = 1 if matched_on == 'title' else 0
+
+        text_matched_list.append(1 if matched_on == 'text' else 0)
+        title_matched_list.append(1 if matched_on == 'title' else 0)
 
         if promise_kept == 1:
             n_kept += 1
@@ -122,7 +178,11 @@ def main():
             n_pending += 1
             pending_list.append(row.get('company', ''))
 
-    log(f"Classified: {n_kept} kept, {n_failed} failed, {n_pending} pending")
+        if matched_on == 'title':
+            n_title_matched += 1
+
+    log(f"Classified: {n_kept} kept, {n_failed} failed, {n_pending} pending"
+         f" (title-matched: {n_title_matched})")
 
     # Sample counts per company
     def top_companies(company_list, label):
@@ -151,7 +211,7 @@ def main():
         'v2_organizations', 'v2_locations', 'v2_tone',
     ]
     existing_base = [c for c in base_cols if c in df.columns]
-    output_cols = existing_base + ['promise_kept', 'label_source']
+    output_cols = existing_base + ['promise_kept', 'label_source', 'text_matched', 'title_matched']
     df_output = df[output_cols].copy()
 
     os.makedirs("data/processed", exist_ok=True)

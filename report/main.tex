@@ -10,7 +10,8 @@
 \usepackage{booktabs}
 \usepackage{graphicx}
 \usepackage{amsmath}
-\usepackage{hyperref}
+\usepackage[breaklinks=true]{hyperref}
+\usepackage{adjustbox}
 \usepackage{xspace}
 \providecommand{\MW}{MW\xspace}
 \providecommand{\USD}[1]{\$#1\xspace}
@@ -68,10 +69,52 @@ This paper bridges construction schedule risk analysis~\cite{Fitzsimmons2022Cons
   \item We demonstrate that announcement text tone differs significantly between completed and failed projects.
 \end{enumerate}
 
-Section~\ref{sec:data} describes our methodology. Section~\ref{sec:results} presents results. Section~\ref{sec:discussion} discusses implications and limitations. Section~\ref{sec:conclusion} concludes.
+Section~\ref{sec:litreview} reviews related work. Section~\ref{sec:data} describes our methodology. Section~\ref{sec:results} presents results. Section~\ref{sec:discussion} discusses implications and limitations. Section~\ref{sec:conclusion} concludes.
 
 %% ======================================================================
-%% 2. DATA AND METHODOLOGY
+%% 2. LITERATURE REVIEW
+%% ======================================================================
+\section{Literature Review}
+\label{sec:litreview}
+
+\subsection{Machine Learning for Construction Schedule Risk}
+
+Recent advances in machine learning have transformed construction schedule risk analysis. Fitzsimmons et al.~\cite{Fitzsimmons2022Construction} proposed a hybrid method combining Gaussian Mixture Modeling (GMM), Empirical Bayesian Networks (EBN), and Support Vector Machines (SVM) with Monte Carlo simulation, trained on 293,263 tasks from 302 UK infrastructure projects. Their approach achieved 54.4\% more accurate delay prediction than conventional Monte Carlo simulation, demonstrating that data-driven methods can replace expert estimation for schedule risk.
+
+Building on this foundation, Mosca et al.~\cite{Mosca2026AI} introduced AI-SRA, a neural network approach that predicts activity duration distributions from schedule attributes. Trained on hundreds of historical projects and deployed on real megaprojects, AI-SRA achieves at least 2$\times$ greater accuracy than traditional PERT or log-normal distributions in quantitative schedule risk analysis. Zachares et al.~\cite{Zachares2022Forecasting} further showed that formulating activity duration forecasting as a classification task with domain-specific binning yields orders of magnitude improvement over regression-based approaches.
+
+The gradient boosting paradigm has proven particularly effective. Abuassi et al.~\cite{Abuassi2025LightGBM} combined LightGBM with Harris Hawks Optimization (HHO) for schedule deviation and budget overrun prediction, outperforming Random Forest and XGBoost with RMSE of 15.32 days and \$25,840. Al Mnaseer~\cite{AlMnaseer2026Ensemble} extended this direction by testing six metaheuristic optimizations paired with ensemble methods, finding that LightGBM optimized with Particle Swarm Optimization achieved ROC-AUC of 0.92 and F1-score of 0.88 for construction risk classification. For megaproject contexts, Hovhannisyan et al.~\cite{Hovhannisyan2023DataDriven} demonstrated that Graph Neural Networks can learn from schedule network structure directly, capturing dependencies between parallel workstreams.
+
+These methods establish that ML-based schedule risk prediction is viable and accurate. Our work extends this literature by applying similar predictive frameworks to data center buildout announcements---a domain that has not yet been systematically studied with data-driven methods.
+
+\subsection{Data Center Buildout Lifecycle and Queue Analysis}
+
+The data center buildout lifecycle spans multiple years and is subject to significant bottlenecks. Whitehead et al.~\cite{Whitehead2015Lifecycle} provided a comprehensive lifecycle assessment framework for data centers, documenting the design-to-operations pathway. d'Orgeval et al.~\cite{dOrgeval2026Generative} extended this with typology-specific lifecycle analysis for generative AI workloads, distinguishing between different classes of data center builds.
+
+The most significant bottleneck in recent years has been grid interconnection. Rand et al.~\cite{Rand2025QueuedUp} (LBNL) document that only 13\% of interconnection queue capacity reaches commercial operation, with median timelines exceeding four years---doubling from pre-2010 levels. Johnston et al.~\cite{Johnston2023Empirical} (NBER) provide rigorous empirical analysis of 4,085 PJM interconnection requests, finding that high interconnection costs drive withdrawals and that congestion externalities exist in queue processing.
+
+Post-approval bottlenecks have now surpassed queue delays as the primary constraint. Data Center Knowledge~\cite{DCKnowlege2026Delays} reports that transformer lead times have ballooned from 50 weeks in 2021 to over 160 weeks in 2026. The NERC~\cite{NERC2026Interconnection} has flagged data center interconnection difficulties as complicating demand forecasting, with ERCOT trimming load forecasts due to slower-than-expected interconnection rates. Kim et al.~\cite{Kim2026Flexibility} propose a flexibility-aware siting framework that could reduce interconnection timelines from conventional 5--8 years to 12--18 months through operational flexibility.
+
+Industry analyses quantify the scale of investment. The IEA projects data center electricity consumption could more than double by 2030~\cite{IEA2025EnergyAI}, and Goldman Sachs forecasts a 16\% surge in US power demand~\cite{GoldmanSachs2024PowerDemand}. Satellite monitoring of construction sites~\cite{SynMax2026Satellite} and local opposition tracking~\cite{DataCenterWatch2025Q1} offer complementary data sources for tracking buildout progress.
+
+\subsection{Event Study Methodology}
+
+Event study methodology provides the statistical framework for measuring the impact of corporate announcements on stock prices. MacKinlay~\cite{MacKinlay1997Event} established the canonical framework: estimate a market model over a clean estimation window, compute abnormal returns around the event date, and aggregate into cumulative abnormal returns (CARs) for statistical inference. Brown and Warner~\cite{Brown1985Daily} demonstrated through simulation that the market model is well-specified for daily returns and that short-horizon event studies are robust, though event-induced variance increases warrant standardized cross-sectional tests.
+
+Kothari and Warner~\cite{Kothari2007Econometrics} comprehensively reviewed over 500 event studies, confirming that short-horizon methods are reliable while long-horizon methods face serious limitations. For practical implementation, Ullah et al.~\cite{Ullah2021EventStudy} provide a step-by-step guide covering estimation window selection, event window specification, normal return models, and significance testing.
+
+Goldsmith-Pinkham and Lyu~\cite{GoldsmithPinkham2025Financial} identify a critical methodological concern: when factor models are misspecified---nearly certain in volatile periods---traditional event study estimators can produce inconsistent treatment effects. They propose synthetic control methods as a robust alternative, particularly relevant for our analysis period spanning 2020--2026. Our study applies the classical market model for comparability while acknowledging these limitations.
+
+\subsection{Investment Announcements and Market Reactions}
+
+The scale of data center investment is unprecedented. Bain \& Company~\cite{Bain2025GlobalForecast} projects global data center capital expenditure exceeding \$1 trillion by 2030. Moody's~\cite{Moodys2025Outlook} and Lichtenberg~\cite{Lichtenberg2026OffBalance} highlight that hyperscaler off-balance-sheet commitments represent \$662 billion in risk---an exposure not fully reflected in market valuations.
+
+At the regulatory level, the JLARC~\cite{JLARC2024Virginia} report documents Virginia's emergence as the leading data center market---``Data Center Alley'' in Loudoun County---while also identifying constraints in power availability, water usage, and local opposition. Data Center Watch~\cite{DataCenterWatch2025Q1} reports that \$64 billion of US data center projects face blocking or delays, underscoring the gap between announcements and delivery that motivates our study.
+
+Prior event study research on capital expenditure announcements finds measurable market reactions, with markets responding favorably to investment increases for high-growth-opportunity firms~\cite{MacKinlay1997Event}. Our study extends this literature by examining the specific case of data center buildout announcements, which combine elements of capital expenditure signaling, regulatory risk exposure, and supply chain constraint communication.
+
+%% ======================================================================
+%% 3. DATA AND METHODOLOGY
 %% ======================================================================
 \section{Data and Methodology}
 \label{sec:data}
@@ -86,7 +129,11 @@ Full text was extracted via \texttt{trafilatura} and \texttt{newspaper3k}. Artic
 
 \subsection{Outcome Classification}
 
-We manually verified 105 announcements where subsequent reporting confirmed completion and 22 where projects were reported as cancelled. The remaining 5,168 (97.6\%) are pending---expected given multi-year lead times.
+Candidate articles were identified from GDELT by filtering to three industry domains (\emph{Data Center Dynamics}, \emph{Data Center Knowledge}, and \emph{Silicon Angle}) and matching against 20 data-center-relevant company tickers. Full text was extracted using \texttt{trafilatura} and \texttt{newspaper3k}, and articles were classified as buildout-related if they contained construction or investment keywords (``build,'' ``construction,'' ``expansion,'' ``megawatt''). Each announcement received a confidence level (high, medium, low) based on language specificity.
+
+Outcome labels were assigned through manual verification: for each buildout event, we searched for follow-up articles in the same three industry sources mentioning project status---opened, completed, cancelled, or delayed. Of 5,295 announcements, 105 (2.0\%) were confirmed completed and 22 (0.4\%) confirmed failed. The remaining 5,168 (97.6\%) remain pending. This high proportion primarily reflects that most recent announcements are too early for outcome determination, given multi-year lead times.
+
+\textbf{Limitation:} Outcome classification relies on manual verification from industry press, which introduces selection bias. Press coverage favors successful projects, and failed or quietly abandoned projects may receive less follow-up coverage. The 82.7\% keep rate among labeled outcomes likely overstates the true rate.
 
 \subsection{Sentiment Analysis}
 
@@ -119,6 +166,20 @@ Our dataset comprises 5,295 announcements from 17 companies: 2,161 (40.8\%) high
   \label{fig:events_by_year}
 \end{figure*}
 
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{../reports/figures/fig2_top_companies.png}
+  \caption{Top companies by data center buildout announcement count. Microsoft leads with 1,650 announcements (31.2\%), followed by Digital Realty (755), AWS (712), Google (698), and NVIDIA (625).}
+  \label{fig:top_companies}
+\end{figure*}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{../reports/figures/fig5_mw_analysis.png}
+  \caption{MW capacity analysis across companies. Mean MW varies substantially---from 152~MW (NVIDIA) to over 5,800~MW (Microsoft Corp), reflecting different buildout scales.}
+  \label{fig:mw_analysis}
+\end{figure*}
+
 \subsection{Geographic Patterns}
 
 \begin{figure*}[t]
@@ -129,6 +190,44 @@ Our dataset comprises 5,295 announcements from 17 companies: 2,161 (40.8\%) high
 \end{figure*}
 
 State-level data is available for 2,246 announcements (42\%). Texas leads with 309 (13.8\%), followed by Virginia (290, 12.9\%), California (213, 9.5\%), and DC (175, 7.8\%). Virginia's prominence reflects Loudoun County's ``Data Center Alley''~\cite{JLARC2024Virginia}. New York has the highest mean MW capacity (4,850~MW), driven by large-scale campus projects.
+
+% --- Geographic and Temporal Distribution ---
+\begin{table*}[t]
+\centering
+\caption{Geographic and Temporal Distribution of Announcements}
+\label{tab:geo_temporal}
+\footnotesize
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Variable} & \textbf{Count} & \textbf{\% of Subset} & \textbf{Mean MW} \\
+\midrule
+\multicolumn{4}{l}{\textit{Panel A: Top 10 U.S. states}} \\
+\quad Texas (TX)          & 309 & 13.76 & 909.61  \\
+\quad Virginia (VA)       & 290 & 12.91 & 1619.23 \\
+\quad California (CA)     & 213 & 9.48  & 1257.31 \\
+\quad District of Columbia (DC) & 175 & 7.79 & 543.27  \\
+\quad New York (NY)       & 138 & 6.14  & 4850.19 \\
+\quad Arizona (AZ)        & 86  & 3.83  & 309.04  \\
+\quad Ohio (OH)           & 81  & 3.61  & 404.18  \\
+\quad Illinois (IL)       & 79  & 3.52  & 2113.43 \\
+\quad Pennsylvania (PA)   & 67  & 2.98  & 750.00  \\
+\quad Georgia (GA)        & 63  & 2.80  & 1265.15 \\
+\midrule
+\multicolumn{4}{l}{\textit{Panel B: By announcement year}} \\
+\quad 2020 & 553  & 10.44 & 965.68  \\
+\quad 2021 & 472  & 8.91  & 1100.66 \\
+\quad 2022 & 812  & 15.34 & 2899.77 \\
+\quad 2023 & 890  & 16.81 & 1413.35 \\
+\quad 2024 & 1478 & 27.91 & 907.51  \\
+\quad 2025 & 942  & 17.79 & 802.41  \\
+\quad 2026 & 148  & 2.80  & 470.99  \\
+\midrule
+\textit{Total with state} & 2246 & 100.00 & --- \\
+\textit{Total all years}  & 5295 & 100.00 & --- \\
+\bottomrule
+\end{tabular}
+\footnotesize \textit{Note:} State information available for 2,246 of 5,295 announcements (42\%). Announcement year extracted from the date field.
+\end{table*}
 
 \subsection{Outcome Classification}
 
@@ -162,6 +261,45 @@ State-level data is available for 2,246 announcements (42\%). Texas leads with 3
 \end{table*}
 
 Only 105 announcements (2.0\%) confirmed completed and 22 (0.4\%) failed. Among 127 with known outcomes, 82.7\% were kept---higher than the 13\% of queue capacity reaching operations~\cite{Rand2025QueuedUp}, likely because press coverage favors successful projects. Facebook/Meta has the lowest keep rate (55.6\%).
+
+% --- Summary Statistics Table ---
+\begin{table*}[t]
+\centering
+\caption{Summary Statistics of Data Center Buildout Announcements}
+\label{tab:summary_stats}
+\footnotesize
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{lrrrrrr}
+\toprule
+\textbf{Variable} & \textbf{N} & \textbf{Mean} & \textbf{Median} & \textbf{Std. Dev.} & \textbf{Min} & \textbf{Max} \\
+\midrule
+\multicolumn{7}{l}{\textit{All announcements}} \\
+\quad MW capacity (MW)       & 1638 & 1234.84 & 150.00 & 7302.00 & 1.00  & 90000.00 \\
+\quad Tone (v2\_tone)        & 5295 & 0.92    & 0.96   & 1.91    & $-$10.43 & 7.77 \\
+\addlinespace
+\multicolumn{7}{l}{\textit{High confidence}} \\
+\quad MW capacity (MW)       & 1349 & 861.65  & 150.00 & 5461.77 & 1.00  & 90000.00 \\
+\quad Tone (v2\_tone)        & 2161 & 0.97    & 0.91   & 1.55    & $-$5.02  & 7.61 \\
+\addlinespace
+\multicolumn{7}{l}{\textit{Medium confidence}} \\
+\quad MW capacity (MW)       & 289  & 2976.82 & 150.00 & 12639.04 & 1.00 & 87000.00 \\
+\quad Tone (v2\_tone)        & 1987 & 1.03    & 1.05   & 1.92    & $-$9.60  & 7.77 \\
+\addlinespace
+\multicolumn{7}{l}{\textit{Low confidence}} \\
+\quad MW capacity (MW)       & 0    & ---     & ---    & ---     & ---  & --- \\
+\quad Tone (v2\_tone)        & 1147 & 0.63    & 0.86   & 2.42    & $-$10.43 & 7.14 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\footnotesize \textit{Note:} N = 5,295 announcements from 17 companies. MW capacity data available for 1,638 observations (31\%). Low-confidence announcements have zero non-missing MW capacity values.
+\end{table*}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{../reports/figures/fig7_confidence_sources.png}
+  \caption{Confidence distribution across news sources. High-confidence announcements are concentrated in Data Center Dynamics, while Data Center Knowledge has a broader mix.}
+  \label{fig:confidence_sources}
+\end{figure*}
 
 \subsection{Sentiment Analysis}
 
@@ -199,9 +337,16 @@ Completed announcements have mean tone 1.38 (positive), failed $-$1.55 (negative
   \label{fig:tone_dist}
 \end{figure*}
 
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{../reports/figures/fig10_temporal_patterns.png}
+  \caption{Temporal patterns in announcements. Announcement activity shows strong seasonality and a sustained upward trend through 2024, moderating in 2025--2026.}
+  \label{fig:temporal_patterns}
+\end{figure*}
+
 \subsection{Event Study Results}
 
-We computed CARs for 1,456 unique events. The $[-1,+1]$ window showed slightly positive but insignificant mean CAR. The $[-5,+5]$ window showed modest positive returns for hyperscaler announcements. The $[-20,+60]$ window revealed substantial cross-sectional variance. Hyperscaler announcements produced more positive CARs than those from smaller REITs, consistent with the investment announcement literature~\cite{MacKinlay1997Event}.
+We computed exploratory CARs for 1,456 unique events. The $[-1,+1]$ window showed slightly positive but insignificant mean CAR. The $[-5,+5]$ window showed modest positive returns for hyperscaler announcements. The $[-20,+60]$ window revealed substantial cross-sectional variance. Given the heterogeneous nature of announcements (varying project sizes, companies, market conditions), these results should be interpreted as descriptive rather than causal. Confidence intervals were wide, and few individual CARs reached statistical significance at the 5\% level. Hyperscaler announcements produced more positive CARs than those from smaller REITs---a pattern suggestively consistent with the investment announcement literature~\cite{MacKinlay1997Event}, but warranting confirmation in larger samples.
 
 %% ======================================================================
 %% 4. DISCUSSION
@@ -211,7 +356,7 @@ We computed CARs for 1,456 unique events. The $[-1,+1]$ window showed slightly p
 
 The overwhelming majority of announcements (97.6\%) remain pending, consistent with multi-year lead times: LBNL~\cite{Rand2025QueuedUp} reports median interconnection timelines exceeding four years, and transformer lead times now exceed 160 weeks~\cite{DCKnowlege2026Delays}. Many 2023--2026 announcements may not reach operational status until 2028--2030.
 
-The significant tone-outcome relationship (p $<$ 0.001) is our most actionable finding. Positive tone of kept versus negative tone of failed announcements suggests framing carries predictive signal, consistent with construction ML literature~\cite{Fitzsimmons2022Construction}. This could serve as a leading indicator for investors and grid operators.
+The significant tone-outcome relationship (p $<$ 0.001) is our most actionable finding. Positive tone of kept versus negative tone of failed announcements suggests a correlational rather than predictive relationship with outcomes, consistent with construction ML literature~\cite{Fitzsimmons2022Construction}. Without longitudinal text data, however, causal direction remains ambiguous. We acknowledge the potential for circularity: announcements of completed projects may have been written in positive language precisely because the project succeeded, rather than the tone predicting success. The temporal ordering between announcement publication and outcome determination warrants further investigation with time-stamped outcome data.
 
 \subsection*{Limitations}
 First, outcome classification relies on manual verification from industry press, introducing selection bias. The 82.7\% keep rate among labeled outcomes likely overstates the true rate. Second, data is limited to three English-language sources; future work should incorporate permitting records and satellite imagery~\cite{SynMax2026Satellite}. Third, GDELT's single tone score lacks nuance. Fourth, 97.6\% pending means conclusions are based on a small labeled subset. Fifth, the simple market model could benefit from multi-factor approaches~\cite{GoldsmithPinkham2025Financial}.

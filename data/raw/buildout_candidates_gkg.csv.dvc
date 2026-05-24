@@ -3,6 +3,7 @@
 # Output lost from colab session before DVC push.
 # Processed events tracked at data/raw/buildout_events_raw.csv.dvc
 outs:
-- md5: d41d8cd98f00b204e9800998ecf8427e
-  size: 0
+- md5: 98dc62fc4fcaea10a0b2a30eb9afaae8
+  size: 14728741
   path: buildout_candidates_gkg.csv
+  hash: md5

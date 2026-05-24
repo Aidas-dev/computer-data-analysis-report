@@ -6,11 +6,21 @@ Executes pipeline scripts 12→13→14 via detached nohup python3 (no Jupyter ke
 import base64, os, subprocess, sys, time
 from pathlib import Path
 
-CENSUS_API_KEY = "e8afaf7cff13d0d152e32bf98c0ac244c63db787"
-FRED_API_KEY = "4aeb77367579a1c44a91f61ed6b991fe"
-OCI_ACCESS_KEY = "542d2f34b5d73eb0b89705355f1ec6f4a0f4b44e"
-OCI_SECRET_KEY = "ps/7lxHnEmGMoPK4EwYtRmpVOXqPbTK7qOkJpY791/k="
-GCP_ADC_B64 = "ewogICJhY2NvdW50IjogIiIsCiAgImNsaWVudF9pZCI6ICI3NjQwODYwNTE4NTAtNnFyNHA2Z3BpNmhuNTA2cHQ4ZWp1cTgzZGkzNDFodXIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLAogICJjbGllbnRfc2VjcmV0IjogImQtRkw5NVExOXE3TVFtRnBkN2hIRDBUeSIsCiAgInF1b3RhX3Byb2plY3RfaWQiOiAicHJvamVjdC0yMWRiNjZlNy0zOWNhLTRmZGEtYjRlIiwKICAicmVmcmVzaF90b2tlbiI6ICIxLy8wY2pXa1c0SnZSSlhkQ2dZSUFSQUFHQXdTTndGLUw5SXIzSzY3Y054UkRXWTdxVnA2ODlqVFBtQVM3bHFEeXBuNHdSYzVNNFFieUhVcHFaa25yM0doWGJ4RDJLc3JxUmh5Vkp3IiwKICAidHlwZSI6ICJhdXRob3JpemVkX3VzZXIiLAogICJ1bml2ZXJzZV9kb21haW4iOiAiZ29vZ2xlYXBpcy5jb20iCn0="
+CENSUS_API_KEY = os.environ.get("CENSUS_API_KEY")
+FRED_API_KEY = os.environ.get("FRED_API_KEY")
+OCI_ACCESS_KEY = os.environ.get("OCI_ACCESS_KEY")
+OCI_SECRET_KEY = os.environ.get("OCI_SECRET_KEY")
+GCP_ADC_B64 = os.environ.get("GCP_ADC_B64")
+
+REQUIRED_ENV_VARS = ["CENSUS_API_KEY", "FRED_API_KEY", "OCI_ACCESS_KEY", "OCI_SECRET_KEY", "GCP_ADC_B64"]
+
+
+def validate_env():
+    missing = [v for v in REQUIRED_ENV_VARS if not os.environ.get(v)]
+    if missing:
+        print(f"[pipeline] FATAL: Missing required env vars: {', '.join(missing)}", flush=True)
+        sys.exit(1)
+    log("All required env vars found.")
 
 REPO_URL = "https://github.com/Aidas-dev/computer-data-analysis-report.git"
 REPO_DIR = "/content/computer-data-analysis-report"
@@ -105,6 +115,7 @@ def dvc_push():
                 log(f"DVC push FAIL: {f.name}")
 
 def main():
+    validate_env()
     log("=== Pipeline: Remote Runner ===")
     write_env()
     clone_repo()
