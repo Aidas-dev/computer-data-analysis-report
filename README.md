@@ -1,5 +1,9 @@
 # AI Data Center Buildout Promises vs. Reality
 
+[![Compile LaTeX Report](https://github.com/Aidas-dev/computer-data-analysis-report/actions/workflows/compile_latex.yml/badge.svg)](https://github.com/Aidas-dev/computer-data-analysis-report/actions/workflows/compile_latex.yml)
+
+The latest compiled PDF is available as a GitHub Actions artifact — go to [Actions → Compile LaTeX Report](https://github.com/Aidas-dev/computer-data-analysis-report/actions/workflows/compile_latex.yml), click the latest successful run, and download `AI_Data_Center_Report`.
+
 ## Project Overview
 Investigating what parameters (economic climate, supply chain, grid constraints) influence whether an AI data center buildout promise is kept in the United States.
 
