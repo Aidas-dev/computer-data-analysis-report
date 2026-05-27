@@ -140,6 +140,7 @@ def run_car_analysis(es):
 
     es_sorted = es.sort_values(['ticker', 'announcement_date', 'days_from_event']).copy()
     es_sorted['daily_return'] = es_sorted.groupby(['ticker', 'announcement_date'])['Close'].pct_change()
+    es_sorted['log_return'] = np.log(es_sorted['Close'] / es_sorted.groupby(['ticker', 'announcement_date'])['Close'].shift(1))
     es_sorted = es_sorted.dropna(subset=['daily_return'])
     print(f"  Rows with valid returns: {len(es_sorted)}")
 
@@ -152,6 +153,14 @@ def run_car_analysis(es):
     es_sorted = es_sorted.merge(expected, on=['ticker', 'announcement_date'], how='left')
     es_sorted['abnormal_return'] = es_sorted['daily_return'] - es_sorted['expected_return']
     es_sorted['car'] = es_sorted.groupby(['ticker', 'announcement_date'])['abnormal_return'].cumsum()
+
+    # ── Log-return CAR (second pass) ──
+    est_log = es_sorted[(es_sorted['days_from_event'] >= -60) & (es_sorted['days_from_event'] <= -21)]
+    expected_log = est_log.groupby(['ticker', 'announcement_date'])['log_return'].mean().reset_index()
+    expected_log.rename(columns={'log_return': 'expected_log_return'}, inplace=True)
+    es_sorted = es_sorted.merge(expected_log, on=['ticker', 'announcement_date'], how='left')
+    es_sorted['abnormal_log_return'] = es_sorted['log_return'] - es_sorted['expected_log_return']
+    es_sorted['car_log'] = es_sorted.groupby(['ticker', 'announcement_date'])['abnormal_log_return'].cumsum()
 
     def get_car_at_window(df, t1, t2):
         w = df[(df['days_from_event'] >= t1) & (df['days_from_event'] <= t2)]
@@ -188,6 +197,26 @@ def run_car_analysis(es):
                          'p_value': p_val, '%_Positive': pct_pos})
             sig = "***" if p_val < 0.01 else "**" if p_val < 0.05 else "*" if p_val < 0.1 else ""
             print(f"  {lbl:>10} | {status:<40} | N={n:>3} | Mean={mu*100:>+7.4f}% | t={t_stat:>6.3f}{sig} | Pos={pct_pos:>5.1f}%")
+
+    # ── Return method comparison ──
+    print("\n" + "-" * 60)
+    print("  Return Method Comparison:")
+    print("-" * 60)
+    print(f"  {'Window':>10} | {'Simple CAR':>10} | {'Log CAR':>9} | {'Difference':>10}")
+    print(f"  {'-'*10} | {'-'*10} | {'-'*9} | {'-'*10}")
+
+    def get_car_at_window_log(df, t1, t2):
+        w = df[(df['days_from_event'] >= t1) & (df['days_from_event'] <= t2)]
+        idx = w.groupby(['ticker', 'announcement_date'])['days_from_event'].idxmax()
+        return w.loc[idx, ['ticker', 'announcement_date', 'ft_status', 'car_log']].copy()
+
+    for (t1, t2), lbl in zip(windows, window_labels):
+        car_simple = get_car_at_window(es_sorted, t1, t2).dropna(subset=['car'])
+        car_log_df = get_car_at_window_log(es_sorted, t1, t2).dropna(subset=['car_log'])
+        mu_simple = car_simple['car'].mean()
+        mu_log = car_log_df['car_log'].mean()
+        diff_pp = (mu_simple - mu_log) * 100
+        print(f"  {lbl:>10} | {mu_simple*100:>+10.4f}% | {mu_log*100:>+9.4f}% | {diff_pp:>+10.2f}pp")
 
     # ── CAR curves plot ──
     print("\n  Plotting CAR curves...")
@@ -333,7 +362,7 @@ def run_ml_classification(es, deduped, qp):
     print("\n" + "-" * 50)
     print("  Logistic Regression")
     print("-" * 50)
-    lr = LogisticRegression(max_iter=1000, random_state=42, multi_class='multinomial')
+    lr = LogisticRegression(max_iter=1000, random_state=42)
     lr.fit(X_tr_s, y_tr)
     yp_lr = lr.predict(X_te_s)
     print(f"    Accuracy:  {accuracy_score(y_te, yp_lr):.3f}")
