@@ -82,7 +82,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score,
-    f1_score, roc_auc_score, roc_curve,
+    f1_score,
     ConfusionMatrixDisplay
 )
 
@@ -400,22 +400,7 @@ def run_ml_classification(es, deduped, qp):
     for _, r in rf_i.iterrows():
         print(f"    {r['feature']}: {r['importance']:.4f}")
 
-    # ── ROC curves ──
-    fig, ax = plt.subplots(figsize=(8, 6))
-    for mn, yp in [('Logistic Regression', yprob_lr), ('Random Forest', yprob_rf)]:
-        fpr, tpr, _ = roc_curve(y_te, yp)
-        ax.plot(fpr, tpr, label=f'{mn} (AUC = {roc_auc_score(y_te, yp):.3f})', linewidth=2)
-    ax.plot([0, 1], [0, 1], 'k--', alpha=0.5, label='Random (AUC = 0.5)')
-    ax.set_xlabel('False Positive Rate')
-    ax.set_ylabel('True Positive Rate')
-    ax.set_title('ROC Curves — Operating vs Cancelled')
-    ax.legend(loc='lower right')
-    plt.tight_layout()
-    fig.savefig(f"{FIG_DIR}/fig12_roc_curves.png")
-    plt.close(fig)
-    print(f"  Saved {FIG_DIR}/fig12_roc_curves.png")
-
-    return (lr, rf, ml, X, y, y_te, yprob_lr, yprob_rf, available)
+    return (lr, rf, ml, X, y, y_te, available)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -437,9 +422,7 @@ def run_summary(car_results, ml_result, window_labels):
 
     print("\n  --- ML Classification ---")
     if ml_result is not None:
-        _, _, ml_df, X, y, y_te, yprob_lr, yprob_rf, available = ml_result
-        print(f"  Logistic Regression AUC: {roc_auc_score(y_te, yprob_lr):.3f}")
-        print(f"  Random Forest AUC:       {roc_auc_score(y_te, yprob_rf):.3f}")
+        _, _, ml_df, X, y, y_te, available = ml_result
         print(f"  Sample size: {len(ml_df)} events")
         print(f"  Classes: Operating ({y.sum()}), Cancelled ({(1-y).sum()})")
         print(f"  Features: {available}")
