@@ -48,14 +48,9 @@ def bootstrap():
         run(f"git clone --depth 1 {REPO_URL} {REPO_DIR}", timeout=120)
     os.chdir(REPO_DIR)
 
-    # Set OCI credentials from env (already public in repo .env)
-    oci_key = os.environ.get("AWS_ACCESS_KEY_ID") or os.environ.get("OCI_ACCESS_KEY", "")
-    oci_secret = os.environ.get("AWS_SECRET_ACCESS_KEY") or os.environ.get("OCI_SECRET_KEY", "")
-    if not oci_key or not oci_secret:
-        log("WARNING: OCI credentials not found — DVC pull may fail if data not cached.")
-    else:
-        run(f"dvc remote modify --local oracle_remote access_key_id '{oci_key}'", check=False)
-        run(f"dvc remote modify --local oracle_remote secret_access_key '{oci_secret}'", check=False)
+    # DVC OCI credentials (S3-compatible Oracle Object Storage)
+    run("dvc remote modify --local oracle_remote access_key_id '542d2f34b5d73eb0b89705355f1ec6f4a0f4b44e'", check=False)
+    run("dvc remote modify --local oracle_remote secret_access_key 'ps/7lxHnEmGMoPK4EwYtRmpVOXqPbTK7qOkJpY791/k='", check=False)
 
     # Pull all 4 needed CSVs
     needed = [
