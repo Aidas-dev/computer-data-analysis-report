@@ -212,55 +212,62 @@ Among years, announcements grew from 553 in 2020 to a peak of 1,478 in 2024, the
 
 \begin{table*}[t]
 \centering
-\caption{Top States by Announcement Volume and Year}
-\label{tab:geo_temporal}
+\caption{Geographic Distribution of FracTracker-Validated Facilities (Top 10 States)}
+\label{tab:geo_distribution}
 \footnotesize
 \begin{tabular}{lrrrrr}
 \toprule
-\textbf{State} & \textbf{2021} & \textbf{2022} & \textbf{2023} & \textbf{2024} & \textbf{Total} \\
+\textbf{State} & \textbf{Operating} & \textbf{Proposed} & \textbf{Approved} & \textbf{Other} & \textbf{Total} \\
 \midrule
-Texas           & 25 & 36 & 48 & 72 & 309 \\
-Virginia        & 20 & 34 & 52 & 68 & 290 \\
-California      & 18 & 22 & 35 & 41 & 213 \\
-DC              & 12 & 18 & 24 & 30 & 175 \\
-New York        & 8  & 14 & 19 & 28 & 98 \\
-Illinois        & 6  & 10 & 15 & 22 & 72 \\
-Georgia         & 5  & 9  & 12 & 18 & 61 \\
-Ohio            & 4  & 8  & 11 & 16 & 54 \\
+TX & 10 & 13 & 11 & 2 & 36 \\
+VA & 3 & 9 & 3 & 4 & 19 \\
+GA & 7 & 9 & 2 & 0 & 18 \\
+OH & 2 & 3 & 2 & 2 & 9 \\
+PA & 3 & 2 & 2 & 1 & 8 \\
+CA & 2 & 2 & 4 & 0 & 8 \\
+NY & 4 & 2 & 1 & 0 & 7 \\
+IN & 0 & 2 & 2 & 2 & 6 \\
+AZ & 1 & 2 & 2 & 0 & 5 \\
+IA & 1 & 3 & 0 & 0 & 4 \\
+\midrule
+\textbf{Total} & 33 & 47 & 29 & 11 & 120 \\
 \bottomrule
 \end{tabular}
-\footnotesize \textit{Note:} Only states with complete annual data shown. Totals include years not displayed.
+\footnotesize \textit{Note:} Only states with matched FracTracker records shown.
 \end{table*}
 
 \subsection{Outcome Classification}
 
 \begin{table*}[t]
 \centering
-\caption{Distribution of Outcome Labels}
-\label{tab:label_dist}
+\caption{Facility Status Distribution by Company (FracTracker Matches)}
+\label{tab:label_distribution}
 \footnotesize
-\begin{tabular}{lrrrr}
+\begin{tabular}{lrrrrr}
 \toprule
-\textbf{Group} & \textbf{Kept} & \textbf{Failed} & \textbf{Pending} & \textbf{\% Kept} \\
+\textbf{Company} & \textbf{Operating} & \textbf{Proposed} & \textbf{Approved} & \textbf{Other} & \textbf{Total} \\
 \midrule
-\multicolumn{5}{l}{\textit{Overall}} \\
-\quad All & 105 & 22 & 5168 & 82.68 \\
-\addlinespace
-\multicolumn{5}{l}{\textit{By company (selected)}} \\
-\quad Microsoft       & 34 & 8 & 1608 & 80.95 \\
-\quad Digital Realty  & 20 & 2 & 733  & 90.91 \\
-\quad AWS             & 22 & 2 & 688  & 91.67 \\
-\quad Google          & 9  & 3 & 686  & 75.00 \\
-\quad NVIDIA          & 8  & 1 & 616  & 88.89 \\
-\quad Facebook        & 5  & 4 & 229  & 55.56 \\
-\addlinespace
-\multicolumn{5}{l}{\textit{By confidence}} \\
-\quad High   & 39 & 12 & 2110 & 76.47 \\
-\quad Medium & 49 & 4  & 1934 & 92.45 \\
-\quad Low    & 17 & 6  & 1124 & 73.91 \\
+Microsoft & 13 & 13 & 10 & 5 & 41 \\
+Digital Realty & 12 & 15 & 9 & 4 & 40 \\
+Google & 9 & 14 & 9 & 1 & 33 \\
+Amazon Web Services & 2 & 7 & 3 & 0 & 12 \\
+Amazon & 0 & 4 & 2 & 2 & 8 \\
+Meta & 4 & 0 & 3 & 0 & 7 \\
+Crusoe & 1 & 4 & 2 & 0 & 7 \\
+Prologis & 1 & 4 & 0 & 1 & 6 \\
+Microsoft Corp & 1 & 3 & 1 & 0 & 5 \\
+Facebook & 1 & 2 & 1 & 0 & 4 \\
+Oracle & 1 & 1 & 1 & 0 & 3 \\
+Equinix & 1 & 1 & 1 & 0 & 3 \\
+American Tower & 1 & 1 & 0 & 0 & 2 \\
+NVIDIA & 1 & 0 & 1 & 0 & 2 \\
+Apple & 0 & 0 & 0 & 1 & 1 \\
+Alphabet & 0 & 0 & 1 & 0 & 1 \\
+\midrule
+\textbf{Total} & 48 & 69 & 44 & 14 & 175 \\
 \bottomrule
 \end{tabular}
-\footnotesize \textit{Note:} 2.0\% completed, 0.4\% failed, 97.6\% pending.
+\footnotesize \textit{Note:} Matched records only (N = 175).
 \end{table*}
 
 Only 105 announcements (2.0\%) confirmed completed and 22 (0.4\%) failed. Among 127 with known outcomes, 82.7\% were kept---higher than the 13\% of queue capacity reaching operations~\cite{Rand2025QueuedUp}, likely because press coverage favors successful projects. From our combined GDELT-FracTracker dataset, 428 events were matched to independently verified facility records, of which 175 had unique matched statuses (48 Operating, 44 Approved, 69 Proposed, 6 Cancelled). Facebook/Meta has the lowest keep rate (55.6\%). MW capacity data, available for 1,638 observations (31\%), shows mean 1,234.84~MW and median 150~MW.
@@ -276,27 +283,25 @@ Only 105 announcements (2.0\%) confirmed completed and 22 (0.4\%) failed. Among 
 
 \begin{table*}[t]
 \centering
-\caption{Characteristics by Outcome}
-\label{tab:by_outcome}
+\caption{Characteristics by Facility Status (FracTracker-Validated)}
+\label{tab:characteristics}
 \footnotesize
-\begin{tabular}{lrrrrrr}
+\begin{tabular}{lrrrrr}
 \toprule
-\textbf{Characteristic} & \textbf{Kept} & \textbf{Failed} & \textbf{Pending} & \textbf{Diff.} & \textbf{p-value} \\
+\textbf{Characteristic} & \textbf{Operating} & \textbf{Proposed} & \textbf{Approved} & \textbf{Other} & \textbf{All} \\
 \midrule
-\multicolumn{6}{l}{\textit{MW capacity}} \\
-\quad N      & 24   & 5    & 1609 &      & \\
-\quad Mean   & 221.42 & 112.80 & 1253.44 & 108.62 & 0.1242 \\
+\multicolumn{6}{l}{\textit{MW Capacity}} \\
+\quad N & 29 & 41 & 31 & 7 & 108 \\
+\quad Mean & 138.66 & 341.51 & 508.39 & 321.29 & 333.63 \\
+\quad Median & 50.00 & 200.00 & 200.00 & 300.00 & 147.00 \\
 \midrule
-\multicolumn{6}{l}{\textit{Tone (v2\_tone)}} \\
-\quad N      & 105  & 22   & 5168 &      & \\
-\quad Mean   & 1.38 & $-$1.55 & 0.92 & 2.93 & $<$0.001 \\
-\midrule
-\multicolumn{6}{l}{\textit{Source domain}} \\
-\quad datacenterdynamics.com  & 81 & 11 & 3431 & & \\
-\quad datacenterknowledge.com & 24 & 11 & 1737 & & \\
+\multicolumn{6}{l}{\textit{Tone (gdelt\_v2\_tone)}} \\
+\quad N & 48 & 69 & 44 & 14 & 175 \\
+\quad Mean & 0.87 & 0.64 & 0.50 & 0.62 & 0.67 \\
+\quad Std Dev & 1.39 & 1.34 & 1.82 & 1.35 & 1.48 \\
 \bottomrule
 \end{tabular}
-\footnotesize \textit{Note:} Welch's $t$-test, Kept vs.\ Failed. Tone difference is highly significant (p $<$ 0.001).
+\footnotesize \textit{Note:} N = 175 matched records.
 \end{table*}
 
 Completed announcements have mean tone 1.38 (positive), failed $-$1.55 (negative)---a difference of 2.93 (p $<$ 0.001). This suggests linguistic framing contains predictive signal, though the small labeled sample (127 of 5,295) warrants caution. MW differences are not statistically significant.
