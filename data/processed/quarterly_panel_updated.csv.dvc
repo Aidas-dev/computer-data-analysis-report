@@ -1,0 +1,5 @@
+outs:
+- md5: 93019adb1cfbebb22ac6aeb4158a4f26
+  size: 37801
+  hash: md5
+  path: quarterly_panel_updated.csv
