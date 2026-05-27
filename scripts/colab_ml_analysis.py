@@ -297,17 +297,20 @@ def run_ml_classification(es, deduped, qp):
     print("  Status distribution:")
     print(ev['ft_status'].value_counts().to_string())
 
-    # Binary subset
-    ml = ev[ev['ft_status'].isin(['Operating', 'Cancelled'])].copy()
-    print(f"\n  Binary classification: {len(ml)} samples")
-    print(f"    Operating: {(ml['ft_status'] == 'Operating').sum()}")
-    print(f"    Cancelled: {(ml['ft_status'] == 'Cancelled').sum()}")
+    # 3-class subset (drop tiny classes)
+    ml = ev[ev['ft_status'].isin(['Operating', 'Proposed', 'Approved/Permitted/Under construction'])].copy()
+    print(f"\n  3-class classification: {len(ml)} samples")
+    for s in ['Operating', 'Proposed', 'Approved/Permitted/Under construction']:
+        print(f"    {s}: {(ml['ft_status'] == s).sum()}")
 
-    if len(ml) < 5:
+    if len(ml) < 10:
         print("  WARNING: Insufficient samples — skipping ML.")
         return None
 
-    ml['target'] = (ml['ft_status'] == 'Operating').astype(int)
+    ml['target'] = ml['ft_status'].map({
+        'Operating': 2, 'Proposed': 1,
+        'Approved/Permitted/Under construction': 0
+    })
 
     feat_cols = ['bp_mw_capacity', 'gdelt_v2_tone', 'total_revenue', 'beta',
                  'ROE', 'debt_to_equity', 'profit_margin', 'market_cap']
@@ -316,11 +319,11 @@ def run_ml_classification(es, deduped, qp):
 
     X = ml[available].fillna(ml[available].median())
     y = ml['target']
-    print(f"  Feature matrix: {X.shape} | Operating share: {y.mean():.3f}")
+    print(f"  Feature matrix: {X.shape}")
 
-    # Split
+    # Split (no stratify — small sample)
     X_tr, X_te, y_tr, y_te = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y)
+        X, y, test_size=0.2, random_state=42)
     scaler = StandardScaler()
     X_tr_s = scaler.fit_transform(X_tr)
     X_te_s = scaler.transform(X_te)
@@ -330,47 +333,37 @@ def run_ml_classification(es, deduped, qp):
     print("\n" + "-" * 50)
     print("  Logistic Regression")
     print("-" * 50)
-    lr = LogisticRegression(max_iter=1000, random_state=42, class_weight='balanced')
+    lr = LogisticRegression(max_iter=1000, random_state=42, multi_class='multinomial')
     lr.fit(X_tr_s, y_tr)
     yp_lr = lr.predict(X_te_s)
-    yprob_lr = lr.predict_proba(X_te_s)[:, 1]
     print(f"    Accuracy:  {accuracy_score(y_te, yp_lr):.3f}")
-    print(f"    Precision: {precision_score(y_te, yp_lr):.3f}")
-    print(f"    Recall:    {recall_score(y_te, yp_lr):.3f}")
-    print(f"    F1:        {f1_score(y_te, yp_lr):.3f}")
-    print(f"    ROC-AUC:   {roc_auc_score(y_te, yprob_lr):.3f}")
+    print(f"    Macro F1:  {f1_score(y_te, yp_lr, average='macro'):.3f}")
 
-    fig, ax = plt.subplots(figsize=(6, 5))
-    ConfusionMatrixDisplay.from_predictions(
-        y_te, yp_lr, ax=ax, display_labels=['Cancelled', 'Operating'], cmap='Blues')
-    ax.set_title('Logistic Regression — Confusion Matrix')
+    # Feature importance
+    importance = pd.DataFrame({
+        'feature': available,
+        'coef_operating': lr.coef_[2] if lr.coef_.shape[0] > 2 else lr.coef_[0]
+    }).sort_values('coef_operating', ascending=False)
+    fig, ax = plt.subplots(figsize=(6, 4))
+    colors = ['#F44336' if c < 0 else '#4CAF50' for c in importance['coef_operating']]
+    ax.barh(range(len(importance)), importance['coef_operating'].values, color=colors)
+    ax.set_yticks(range(len(importance)))
+    ax.set_yticklabels(importance['feature'].values)
+    ax.axvline(0, color='black', linewidth=0.5)
+    ax.set_title('LR Coefficients (Operating class)')
     plt.tight_layout()
-    fig.savefig(f"{FIG_DIR}/fig12_lr_confusion_matrix.png")
-    plt.close(fig)
-    print(f"  Saved {FIG_DIR}/fig12_lr_confusion_matrix.png")
+    plt.savefig(f"{FIG_DIR}/fig12_feature_importance.png")
+    plt.close()
 
     # ── Random Forest ──
     print("\n" + "-" * 50)
     print("  Random Forest")
     print("-" * 50)
-    rf = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced')
-    rf.fit(X_tr, y_tr)
-    yp_rf = rf.predict(X_te)
-    yprob_rf = rf.predict_proba(X_te)[:, 1]
+    rf = RandomForestClassifier(n_estimators=100, random_state=42)
+    rf.fit(X_tr_s, y_tr)
+    yp_rf = rf.predict(X_te_s)
     print(f"    Accuracy:  {accuracy_score(y_te, yp_rf):.3f}")
-    print(f"    Precision: {precision_score(y_te, yp_rf):.3f}")
-    print(f"    Recall:    {recall_score(y_te, yp_rf):.3f}")
-    print(f"    F1:        {f1_score(y_te, yp_rf):.3f}")
-    print(f"    ROC-AUC:   {roc_auc_score(y_te, yprob_rf):.3f}")
-
-    fig, ax = plt.subplots(figsize=(6, 5))
-    ConfusionMatrixDisplay.from_predictions(
-        y_te, yp_rf, ax=ax, display_labels=['Cancelled', 'Operating'], cmap='Greens')
-    ax.set_title('Random Forest — Confusion Matrix')
-    plt.tight_layout()
-    fig.savefig(f"{FIG_DIR}/fig12_rf_confusion_matrix.png")
-    plt.close(fig)
-    print(f"  Saved {FIG_DIR}/fig12_rf_confusion_matrix.png")
+    print(f"    Macro F1:  {f1_score(y_te, yp_rf, average='macro'):.3f}")
 
     # ── Feature importance ──
     lr_c = pd.DataFrame({
