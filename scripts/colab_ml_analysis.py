@@ -231,8 +231,7 @@ def run_sentiment_analysis(deduped):
 
     # Parse V2Tone — first element is the numeric tone score
     tone['gdelt_v2_tone'] = pd.to_numeric(
-        tone['gdelt_v2_tone'].astype(str).str.split(';').str[0].str.split('|').str[0],
-        errors='coerce'
+        tone['gdelt_v2_tone'].astype(str).str.split(',').str[0], errors='coerce'
     )
     tone = tone.dropna(subset=['gdelt_v2_tone'])
     print(f"  Events after parsing tone: {len(tone)}")
@@ -280,6 +279,10 @@ def run_ml_classification(es, deduped, qp):
              'bp_mw_capacity']].drop_duplicates().copy()
 
     # Tone per facility
+    deduped = deduped.copy()
+    deduped['gdelt_v2_tone'] = pd.to_numeric(
+        deduped['gdelt_v2_tone'].astype(str).str.split(',').str[0], errors='coerce'
+    )
     tone_map = deduped[['ft_facility_name', 'gdelt_v2_tone']].dropna(subset=['gdelt_v2_tone'])
     tone_map = tone_map.groupby('ft_facility_name')['gdelt_v2_tone'].mean().reset_index()
     ev = ev.merge(tone_map, on='ft_facility_name', how='left')
