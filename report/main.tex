@@ -61,11 +61,11 @@
 
 %% Abstract
 \begin{abstract}
-The rapid expansion of AI has triggered an unprecedented wave of data center buildout announcements, yet a significant gap persists between announcements and operational delivery. We present the first large-scale empirical analysis using the GDELT Global Knowledge Graph, mining 5,295 announcements across 17 publicly-traded companies from January 2020 through May 2026. We identify only 105 announcements (2.0\%) as confirmed completed and 22 (0.4\%) as confirmed failed, with 97.6\% remaining pending---reflecting multi-year lead times. Cross-validation against the FracTracker Open Data Centers Tracker confirmed 428 events with independently verified facility statuses. Geographic analysis reveals concentration in Texas, Virginia, and California. Temporal trends show announcements peaked in 2024 at 1,478 events. Text sentiment analysis reveals a statistically significant difference (p $<$ 0.001) between tone of kept announcements (mean = 1.38) and failed announcements (mean = $-$1.55). An event study finds measurable cumulative abnormal returns with high variance across companies. This study was conducted as part of the Computer Data Analysis course at Vilnius University.
+The rapid expansion of AI has triggered an unprecedented wave of data center buildout announcements, yet a significant gap persists between announcements and operational delivery. We construct a novel dataset of data center buildout announcements by combining the GDELT Global Knowledge Graph (5,295 announcements) with the FracTracker Open U.S. Data Centers Tracker (1,520 facility records), yielding 428 events with validated facility statuses, 976 extracted article texts, and financial data for 11 publicly-traded developers. We identify only 105 announcements (2.0\%) as confirmed completed and 22 (0.4\%) as confirmed failed, with 97.6\% remaining pending---reflecting multi-year lead times. Geographic analysis reveals concentration in Texas, Virginia, and California. Temporal trends show announcements peaked in 2024 at 1,478 events. Text sentiment analysis reveals a statistically significant difference (p $<$ 0.001) between tone of kept announcements (mean = 1.38) and failed announcements (mean = $-$1.55). An event study finds measurable cumulative abnormal returns with high variance across companies. This study was conducted as part of the Computer Data Analysis course at Vilnius University.
 \end{abstract}
 
 \begin{keyword}
-data centers \sep buildout announcements \sep GDELT \sep event study \sep infrastructure delivery
+data centers \sep buildout announcements \sep GDELT \sep FracTracker \sep event study \sep infrastructure delivery
 \end{keyword}
 
 \end{frontmatter}
@@ -85,7 +85,7 @@ This paper bridges construction schedule risk analysis~\cite{Fitzsimmons2022Cons
   \item We construct the first large-scale dataset (N = 5,295) by mining GDELT across three industry news sources, covering 17 companies over 6.5 years.
   \item We perform comprehensive descriptive analysis of geographic, temporal, and company-level patterns.
   \item We conduct an event study finding heterogeneous cumulative abnormal returns.
-  \item We demonstrate that announcement text tone differs significantly between completed and failed projects.
+  \item We construct a validated combined dataset enabling further research on infrastructure delivery, and demonstrate that announcement text tone differs significantly between completed and failed projects.
 \end{enumerate}
 
 Section~\ref{sec:litreview} reviews related work. Section~\ref{sec:data} describes our methodology. Section~\ref{sec:results} presents results. Section~\ref{sec:discussion} discusses implications and limitations. Section~\ref{sec:conclusion} concludes.
@@ -124,9 +124,11 @@ The scale of data center investment is unprecedented. Bain~\cite{Bain2025GlobalF
 
 \subsection{Data Sources}
 
-Our primary source is the GDELT Global Knowledge Graph v2.0~\cite{GDELT2022GKG}, which monitors global news in over 100 languages. We queried three industry publications: \emph{Data Center Dynamics}, \emph{Data Center Knowledge}, and \emph{Silicon Angle}, searching for 20 data-center-relevant stock tickers from January 2020 to May 2026. Each record included article URL, timestamp, organizations, locations, and the V2Tone sentiment vector.\looseness=-1
+Our primary validation source is the FracTracker Open U.S. Data Centers Tracker~\cite{FracTracker2025Open}, which curates 1,520 data center sites from public records including county permits, utility filings, and economic development announcements. Each FracTracker record provides an independently verified facility status (Operating, Approved, Proposed, Cancelled) along with geographic coordinates, MW capacity, developer name, and source URLs. From these source URLs we extracted 976 full article texts totaling 2.8M characters, providing a rich textual corpus linked to validated facility outcomes.
 
-We further validated outcomes by cross-referencing against the FracTracker Open U.S. Data Centers Tracker~\cite{FracTracker2025Open}, which curates 1,520 data center sites from public records. Of our 5,295 GDELT events, 428 matched FracTracker records by company, state, and MW capacity, providing validated status labels (48 Operating, 44 Approved, 69 Proposed, 6 Cancelled). An additional 976 article texts were extracted from FracTracker source URLs totaling 2.8M characters.\looseness=-1
+For broad discovery of buildout announcements, we used the GDELT Global Knowledge Graph v2.0~\cite{GDELT2022GKG}, which monitors global news in over 100 languages. We queried three industry publications---\emph{Data Center Dynamics}, \emph{Data Center Knowledge}, and \emph{Silicon Angle}---searching for 20 data-center-relevant stock tickers from January 2020 to May 2026, yielding 5,295 announcements. Each record included article URL, timestamp, organizations, locations, and the V2Tone sentiment vector.\looseness=-1
+
+We merged these two sources by matching GDELT events to FracTracker records on company name, state, and MW capacity range. This yielded 428 events with validated FracTracker facility statuses (48 Operating, 44 Approved, 69 Proposed, 6 Cancelled), forming the core of our combined dataset. The union of GDELT's broad temporal coverage with FracTracker's verified ground-truth labels enables analyses unavailable from either source alone.\looseness=-1
 
 \subsection{Article Processing and Outcome Classification}
 
@@ -261,7 +263,7 @@ Ohio            & 4  & 8  & 11 & 16 & 54 \\
 \footnotesize \textit{Note:} 2.0\% completed, 0.4\% failed, 97.6\% pending.
 \end{table*}
 
-Only 105 announcements (2.0\%) confirmed completed and 22 (0.4\%) failed. Among 127 with known outcomes, 82.7\% were kept---higher than the 13\% of queue capacity reaching operations~\cite{Rand2025QueuedUp}, likely because press coverage favors successful projects. Cross-referencing against FracTracker independently validated 428 events by company and location, of which 175 had unique matched statuses (48 Operating, 44 Approved, 69 Proposed, 6 Cancelled). Facebook/Meta has the lowest keep rate (55.6\%). MW capacity data, available for 1,638 observations (31\%), shows mean 1,234.84~MW and median 150~MW.
+Only 105 announcements (2.0\%) confirmed completed and 22 (0.4\%) failed. Among 127 with known outcomes, 82.7\% were kept---higher than the 13\% of queue capacity reaching operations~\cite{Rand2025QueuedUp}, likely because press coverage favors successful projects. From our combined GDELT-FracTracker dataset, 428 events were matched to independently verified facility records, of which 175 had unique matched statuses (48 Operating, 44 Approved, 69 Proposed, 6 Cancelled). Facebook/Meta has the lowest keep rate (55.6\%). MW capacity data, available for 1,638 observations (31\%), shows mean 1,234.84~MW and median 150~MW.
 
 \begin{figure*}[t]
   \centering
@@ -351,14 +353,14 @@ First, outcome classification relies on manual verification from industry press,
 \section{Conclusion}
 \label{sec:conclusion}
 
-This paper presents the first large-scale empirical analysis of data center buildout announcements. Three principal findings emerge.
+This paper presents the first large-scale empirical analysis of data center buildout announcements, centered on a combined GDELT-FracTracker dataset. Our primary contribution is the merged, validated dataset itself, which we make available for further research. Three principal findings emerge.
 
-First, the landscape is characterized by extreme uncertainty: only 2.0\% confirmed completed, 0.4\% failed, 97.6\% pending---underscoring multi-year lead times and execution risk. Cross-validation against the FracTracker Open Data Centers Tracker confirmed 428 events with independently verified facility statuses, strengthening the empirical basis for outcome classification. Second, announcement tone contains significant predictive signal: kept (mean 1.38) vs.\ failed ($-$1.55) at p $<$ 0.001, with sentiment differences by FracTracker status approaching significance (p = 0.053). Third, market reactions are heterogeneous, with hyperscaler announcements eliciting more positive responses; FracTracker-validated CARs reach +9.6\% for Operating facilities.
+First, the landscape is characterized by extreme uncertainty: only 2.0\% confirmed completed, 0.4\% failed, 97.6\% pending---underscoring multi-year lead times and execution risk. The combined GDELT-FracTracker dataset anchors this finding with 428 events that have independently verified facility statuses, strengthening the empirical basis for outcome classification. Second, announcement tone contains significant predictive signal: kept (mean 1.38) vs.\ failed ($-$1.55) at p $<$ 0.001, with sentiment differences by FracTracker status approaching significance (p = 0.053). Third, market reactions are heterogeneous, with hyperscaler announcements eliciting more positive responses; FracTracker-validated CARs reach +9.6\% for Operating facilities.
 
 For investors, monitoring announcement framing could inform capital allocation. For grid operators, the volume of pending announcements underscores the need for robust planning. For researchers, our dataset provides a foundation for predictive models~\cite{Fitzsimmons2022Construction,Mosca2026AI,Johnston2023Empirical,Rand2025QueuedUp}. Our ML analysis finds that V2Tone and MW capacity are the strongest predictors (43\% each) of project status, though classifier accuracy remains limited (macro F1 $\leq$ 0.37) by small labeled samples. Future work should incorporate permitting records, satellite imagery~\cite{SynMax2026Satellite}, local opposition tracking~\cite{DataCenterWatch2025Q1}, and larger labeled datasets for supervised learning approaches.
 
 \subsection*{Data Availability Statement}
-{\sloppy The dataset derived from GDELT is available upon request. GDELT data is public at \url{https://www.gdeltproject.org/data.html}. Code at \url{https://github.com/Aidas-dev/computer-data-analysis-report}.\par}
+{\sloppy The combined GDELT-FracTracker dataset is available upon request. GDELT data is public at \url{https://www.gdeltproject.org/data.html}. FracTracker data is available at \url{https://www.fracracker.org/open-data-centers}. Code at \url{https://github.com/Aidas-dev/computer-data-analysis-report}.\par}
 
 \subsection*{Ethics Declaration}
 This research uses publicly available news and stock price data. No human subjects were involved.
