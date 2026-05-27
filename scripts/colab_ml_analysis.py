@@ -229,6 +229,14 @@ def run_sentiment_analysis(deduped):
     tone = deduped[['ft_status', 'gdelt_v2_tone']].dropna(subset=['gdelt_v2_tone']).copy()
     print(f"  Events with tone data: {len(tone)}")
 
+    # Parse V2Tone — first element is the numeric tone score
+    tone['gdelt_v2_tone'] = pd.to_numeric(
+        tone['gdelt_v2_tone'].astype(str).str.split(';').str[0].str.split('|').str[0],
+        errors='coerce'
+    )
+    tone = tone.dropna(subset=['gdelt_v2_tone'])
+    print(f"  Events after parsing tone: {len(tone)}")
+
     # Box plot
     fig, ax = plt.subplots(figsize=(10, 5))
     order = tone.groupby('ft_status')['gdelt_v2_tone'].median().sort_values(ascending=False).index
