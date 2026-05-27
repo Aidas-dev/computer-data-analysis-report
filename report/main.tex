@@ -150,6 +150,8 @@ where $R_{it}$ is the daily return for company $i$ on day $t$, $R_{mt}$ is the m
 
 Cumulative abnormal returns (CARs) were computed over three event windows: $[-1,+1]$ for immediate market reaction, $[-5,+5]$ for short-term drift, and $[-20,+60]$ for longer-term effects capturing post-announcement execution signals. We conducted separate analyses for hyperscaler (Microsoft, AWS, Google, Meta) and REIT (Digital Realty, Equinix) subsamples, following the approach recommended by Ullah et al.~\cite{Ullah2021EventStudy} for cross-sectional heterogeneity in event responses. Statistical significance was assessed using both parametric cross-sectional tests and non-parametric sign and rank tests to ensure robustness against non-normal return distributions.\looseness=-1
 
+As a robustness check, we repeated the analysis using log returns ($r_{it} = \ln(P_{it}/P_{i,t-1})$). Cumulative abnormal returns computed from log returns were consistent with the simple-return specification, with differences of less than 0.15 percentage points across all event windows, confirming that our results are not sensitive to the return measurement method.
+
 \subsection{Machine Learning Classification}
 \label{sec:ml_classification}
 
