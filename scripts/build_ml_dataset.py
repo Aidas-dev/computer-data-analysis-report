@@ -17,6 +17,9 @@ import argparse
 import numpy as np
 import pandas as pd
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from gdelt_utils import parse_v2_tone
+
 warnings.filterwarnings('ignore')
 
 COMPANY_TICKER_MAP = {
@@ -51,8 +54,9 @@ def parse_tone(tone_str):
     if pd.isna(tone_str) or not isinstance(tone_str, str):
         return pd.Series([np.nan]*6)
     parts = tone_str.split(',')
-    vals = []
-    for i in range(5):
+    avg_tone = parse_v2_tone(tone_str)  # first component via shared util
+    vals = [avg_tone]
+    for i in range(1, 5):
         try:
             vals.append(float(parts[i]) if i < len(parts) else np.nan)
         except (ValueError, IndexError):

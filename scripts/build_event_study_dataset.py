@@ -26,6 +26,9 @@ import warnings
 import numpy as np
 import pandas as pd
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from colab_ml_analysis import run_car_analysis
+
 warnings.filterwarnings("ignore")
 
 COMPANY_TICKER_MAP = {
@@ -248,53 +251,11 @@ def step2_event_study(deduped):
     result.to_csv(EVENT_STUDY_OUTPUT, index=False)
     log(f"Saved: {EVENT_STUDY_OUTPUT}")
 
-    # ── Per-event CAR ──
+    # ── CAR via shared canonical implementation ──
+    log("\nComputing CAR via shared run_car_analysis...")
+    run_car_analysis(result)
 
-    # Daily return (simple percentage change from Close)
-    result["daily_return"] = result.groupby("gdelt_url")["Close"].transform(lambda x: x.pct_change())
-
-    # Cumulative return over each event window
-    car = (
-        result.groupby(["gdelt_url", "ft_status"])
-        .agg(
-            car=("daily_return", lambda s: (1 + s.dropna()).prod() - 1),
-            ticker=("ticker", "first"),
-            announcement_date=("announcement_date", "first"),
-            match_score=("match_score", "first"),
-            window_days=("days_from_event", lambda d: f"{d.min()}:{d.max()}"),
-            n_days=("days_from_event", "count"),
-        )
-        .reset_index()
-    )
-
-    # ── Print coverage & CAR ──
-
-    total = len(deduped)
-    print(f"\n{'=' * 60}")
-    print(f"  EVENT STUDY SUMMARY")
-    print(f"{'=' * 60}")
-    print(f"  Total deduped events               : {total}")
-    print(f"  Events with stock data             : {n_events}")
-    print(f"  Coverage rate                      : {n_events / total * 100:.1f}%")
-    print(f"  Missing (no ticker map)            : {missing_ticker}")
-    print(f"  Missing (no stock for ticker)      : {missing_stock}")
-    print(f"  Missing (no data in ±{EVENT_WINDOW_DAYS}d window): {missing_window}")
-    print(f"  Total event-study rows             : {len(result)}")
-    print(f"  Tickers represented                : {n_tickers}")
-
-    print(f"\n  CAR by FracTracker status:")
-    print(f"  {'Status':30s} {'Mean':>10s} {'Median':>10s} {'Std':>10s} {'N':>6s}")
-    print(f"  {'-' * 30} {'-' * 10} {'-' * 10} {'-' * 10} {'-' * 6}")
-    for status_val, grp in car.groupby("ft_status"):
-        mean_car = grp["car"].mean()
-        median_car = grp["car"].median()
-        std_car = grp["car"].std()
-        count = len(grp)
-        print(f"  {str(status_val):30s} {mean_car:>+10.4f} {median_car:>+10.4f} {std_car:>10.4f} {count:>6d}")
-
-    print(f"{'=' * 60}\n")
-
-    return result, car
+    return result
 
 
 def main():

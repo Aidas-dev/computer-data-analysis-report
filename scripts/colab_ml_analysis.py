@@ -10,6 +10,10 @@ Runs CAR analysis, sentiment, binary classification, summary.
 import os
 os.environ['MPLBACKEND'] = 'Agg'  # must be before matplotlib import
 
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from gdelt_utils import parse_v2_tone
+
 # ── Self-bootstrap ────────────────────────────────────────────────────────────
 import subprocess
 import sys
@@ -258,10 +262,8 @@ def run_sentiment_analysis(deduped):
     tone = deduped[['ft_status', 'gdelt_v2_tone']].dropna(subset=['gdelt_v2_tone']).copy()
     print(f"  Events with tone data: {len(tone)}")
 
-    # Parse V2Tone — first element is the numeric tone score
-    tone['gdelt_v2_tone'] = pd.to_numeric(
-        tone['gdelt_v2_tone'].astype(str).str.split(',').str[0], errors='coerce'
-    )
+    # Parse V2Tone via shared utility
+    tone['gdelt_v2_tone'] = tone['gdelt_v2_tone'].apply(parse_v2_tone)
     tone = tone.dropna(subset=['gdelt_v2_tone'])
     print(f"  Events after parsing tone: {len(tone)}")
 
@@ -309,9 +311,7 @@ def run_ml_classification(es, deduped, qp):
 
     # Tone per facility
     deduped = deduped.copy()
-    deduped['gdelt_v2_tone'] = pd.to_numeric(
-        deduped['gdelt_v2_tone'].astype(str).str.split(',').str[0], errors='coerce'
-    )
+    deduped['gdelt_v2_tone'] = deduped['gdelt_v2_tone'].apply(parse_v2_tone)
     tone_map = deduped[['ft_facility_name', 'gdelt_v2_tone']].dropna(subset=['gdelt_v2_tone'])
     tone_map = tone_map.groupby('ft_facility_name')['gdelt_v2_tone'].mean().reset_index()
     ev = ev.merge(tone_map, on='ft_facility_name', how='left')
