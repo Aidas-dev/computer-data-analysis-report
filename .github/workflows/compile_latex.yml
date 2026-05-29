@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'report/**'
+      - 'docs/**'
       - '.github/workflows/compile_latex.yml'
   pull_request:
     paths:
@@ -26,8 +27,41 @@ jobs:
           compiler: latexmk
           args: -pdf -interaction=nonstopmode -file-line-error
 
+      - name: Copy PDF to docs/
+        run: cp report/main.pdf docs/AI_Data_Center_Report.pdf
+
       - name: Upload PDF file as artifact
         uses: actions/upload-artifact@v4
         with:
           name: AI_Data_Center_Report
           path: report/main.pdf
+
+  deploy:
+    needs: [build_latex]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      pages: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download PDF artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: AI_Data_Center_Report
+          path: docs/
+
+      - name: Upload artifact to Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

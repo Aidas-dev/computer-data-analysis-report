@@ -1,0 +1,9 @@
+theme: jekyll-theme-cayman
+title: AI Data Center Buildout Promises vs. Reality
+description: A combined GDELT-FracTracker analysis of 5,295 data center buildout announcements and 428 validated project outcomes
+show_downloads: false
+github:
+  is_project_page: true
+  owner_url: https://github.com/Aidas-dev
+  owner_name: Aidas-dev
+  repository_url: https://github.com/Aidas-dev/computer-data-analysis-report
