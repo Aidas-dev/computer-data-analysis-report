@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Data Center Buildout Promises vs. Reality</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; background: #fff; }
+    .page-header { background: linear-gradient(135deg, #155799, #159957); color: #fff; padding: 3rem 1rem; text-align: center; }
+    .page-header h1 { font-size: 2.2rem; margin-bottom: 0.5rem; }
+    .page-header p { font-size: 1.1rem; opacity: 0.85; max-width: 700px; margin: 0 auto; }
+    .main-content { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    .main-content h2 { margin: 1.5rem 0 0.75rem; color: #155799; border-bottom: 1px solid #eee; padding-bottom: 0.25rem; }
+    .main-content p { margin-bottom: 1rem; }
+    .main-content ul { margin: 0 0 1rem 1.5rem; }
+    .main-content li { margin-bottom: 0.4rem; }
+    a { color: #159957; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .download-link { display: inline-block; padding: 0.8rem 2rem; background: #159957; color: #fff !important; border-radius: 6px; font-weight: 600; margin: 0.5rem 0; }
+    .download-link:hover { background: #0f7d45; text-decoration: none; }
+    .badge { vertical-align: middle; }
+    .authors { margin: 1.5rem 0; }
+    .repo-link { display: block; text-align: center; margin: 2rem 0; font-size: 0.9rem; }
+    footer { text-align: center; padding: 2rem; color: #666; font-size: 0.85rem; border-top: 1px solid #eee; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <h1>AI Data Center Buildout Promises vs. Reality</h1>
+    <p>A combined GDELT-FracTracker analysis of 5,295 data center buildout announcements and 428 validated project outcomes</p>
+    <p style="margin-top:1rem;">
+      <a href="https://github.com/Aidas-dev/computer-data-analysis-report/actions/workflows/compile_latex.yml"><img src="https://github.com/Aidas-dev/computer-data-analysis-report/actions/workflows/compile_latex.yml/badge.svg" alt="Compile LaTeX Report" class="badge"></a>
+    </p>
+  </header>
+  <div class="main-content">
+    <h2>Abstract</h2>
+    <p>This study investigates the gap between corporate announcements of AI data center buildouts and their realized outcomes. We combined the GDELT Project's event database with the FracTracker Open U.S. Data Centers Tracker to compile and analyze 5,295 buildout announcements from 17 major technology and REIT companies spanning 2020 to 2026, alongside 1,520 known data center facilities. Through systematic cross-referencing, we produced 428 matched events with validated facility statuses (Operating, Cancelled, or Proposed). Our methodology applies event study analysis (cumulative abnormal returns), sentiment analysis of announcement tone, and machine learning classification to identify the key determinants of project completion. We find that announcements associated with operating facilities show a mean cumulative abnormal return of +9.6%, while those tied to cancelled projects show -5.1%. V2Tone (tone) and megawatt capacity emerge as the two strongest predictors of outcome, each contributing approximately 43% to model accuracy. The association between announcement tone and actual project outcome approaches statistical significance (p=0.053). These findings suggest that market signals and project scale carry meaningful information about the likelihood of data center delivery.</p>
+
+    <h2>Key Findings</h2>
+    <ul>
+      <li>428 GDELT-FracTracker matched events across 17 major technology and REIT companies</li>
+      <li>Operating announcements: +9.6% mean CAR; Cancelled: -5.1% mean CAR</li>
+      <li>Logistic Regression achieves 40.7% accuracy (3-class), Random Forest 33.3%</li>
+      <li>Announcement tone and MW capacity are the strongest predictors of project outcome</li>
+    </ul>
+
+    <h2>Download</h2>
+    <p><a href="AI_Data_Center_Report.pdf" class="download-link">Download the Full Paper (PDF)</a></p>
+
+    <h2>Data and Code</h2>
+    <p>All data, notebooks, and scripts used in this study are available in the repository:</p>
+    <ul>
+      <li><strong>Data</strong>: <a href="https://github.com/Aidas-dev/computer-data-analysis-report/tree/main/data">data/</a> — raw, interim, and processed datasets (tracked via DVC)</li>
+      <li><strong>Notebooks</strong>: <a href="https://github.com/Aidas-dev/computer-data-analysis-report/tree/main/notebooks">notebooks/</a> — data extraction, analysis, and ML training workflows</li>
+      <li><strong>Source code</strong>: <a href="https://github.com/Aidas-dev/computer-data-analysis-report/tree/main/src">src/</a> — data pipelines and utilities</li>
+      <li><strong>Report</strong>: <a href="https://github.com/Aidas-dev/computer-data-analysis-report/tree/main/report">report/</a> — LaTeX source (main.tex) for the full paper</li>
+    </ul>
+
+    <h2>Authors</h2>
+    <p class="authors"><strong>Aidas Krisciunas</strong>, <strong>Domas Pitrenas</strong>, <strong>Jokubas Narvydas</strong>, <strong>Karolis Boguska</strong></p>
+    <p>Faculty of Economics and Business Administration (FEBA)<br>Vilnius University</p>
+
+    <p class="repo-link"><a href="https://github.com/Aidas-dev/computer-data-analysis-report">View the Repository</a></p>
+  </div>
+  <footer>
+    Faculty of Economics and Business Administration (FEBA) &mdash; Vilnius University
+  </footer>
+</body>
+</html>
