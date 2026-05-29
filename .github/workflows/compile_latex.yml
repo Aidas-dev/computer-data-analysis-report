@@ -57,6 +57,9 @@ jobs:
           name: AI_Data_Center_Report
           path: docs/
 
+      - name: Rename PDF
+        run: mv docs/main.pdf docs/AI_Data_Center_Report.pdf
+
       - name: Upload artifact to Pages
         uses: actions/upload-pages-artifact@v3
         with:
