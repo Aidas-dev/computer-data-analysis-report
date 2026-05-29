@@ -23,7 +23,6 @@ All data, notebooks, and scripts used in this study are available in the reposit
 
 - **Data**: [`data/`](https://github.com/Aidas-dev/computer-data-analysis-report/tree/main/data) — raw, interim, and processed datasets (tracked via DVC)
 - **Notebooks**: [`notebooks/`](https://github.com/Aidas-dev/computer-data-analysis-report/tree/main/notebooks) — data extraction, analysis, and ML training workflows
-- **Source code**: [`src/`](https://github.com/Aidas-dev/computer-data-analysis-report/tree/main/src) — data pipelines and utilities
 - **Report**: [`report/`](https://github.com/Aidas-dev/computer-data-analysis-report/tree/main/report) — LaTeX source (`main.tex`) for the full paper
 
 ## Authors

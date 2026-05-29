@@ -79,6 +79,5 @@ This repository contains a GitHub Actions workflow (`.github/workflows/compile_l
 - `data/` - Raw, interim, and processed data (tracked by DVC, NOT Git).
 - `docs/` - Research foundation, sources, links.
 - `notebooks/` - Colab/Jupyter exploration, data extraction, ML training.
-- `src/` - Source code (data pipelines, DVC storage utility).
-- `models/` - Trained models (tracked by DVC).
+- `src/` - Source code (DVC storage utility).
 - `report/tex/` - LaTeX report and figures.
